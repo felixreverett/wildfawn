@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
@@ -32,21 +33,20 @@ type QueueEntry struct {
 
 // Send HTTP request to URL, returning HTML, response code, and any errors
 func fetchURL(url string) (string, int, error) {
-	//time.Sleep(time.Second * time.Duration(rand.Intn(5))) // Wait 1-5 seconds
-	/*
-		client := &http.Client{}
-		req, _ := http.NewRequest("GET", url, nil)
-		req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
 
-		response, err := client.Do(req)
-		if err != nil {
-			fmt.Println("Error:", err)
-			return "", response.StatusCode, err
-		}*/
-
-	response, err := http.Get(url)
+	// Be respectful to the server by setting a user-agent 🙇🙇🙇
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", 0, err
+	}
+
+	request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return "", 0, nil
 	}
 	defer response.Body.Close()
 
@@ -126,6 +126,7 @@ func GoWild(root string) {
 		URLObjects[url] = &URLObject{inlinks: 1, outlinks: len(links), pageStatus: status, crawlDepth: depth}
 
 		for _, link := range links {
+
 			// resolve relative URLs
 			if link[0] == '/' {
 				if root[len(root)-1] == '/' {
@@ -157,6 +158,6 @@ func GoWild(root string) {
 }
 
 func main() {
-	GoWild("https://web-scraping.dev/")
-	//GoWild("https://yavsrg.net")
+	//GoWild("https://web-scraping.dev/")
+	GoWild("https://hookflash.co.uk/")
 }
