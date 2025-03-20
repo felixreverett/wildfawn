@@ -127,6 +127,11 @@ func GoWild(root string) {
 
 		for _, link := range links {
 
+			// ignore 0-length URLs
+			if len(link) == 0 {
+				continue
+			}
+
 			// resolve relative URLs
 			if link[0] == '/' {
 				if root[len(root)-1] == '/' {
