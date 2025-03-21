@@ -164,5 +164,4 @@ func GoWild(root string) {
 
 func main() {
 	//GoWild("https://web-scraping.dev/")
-	GoWild("https://hookflash.co.uk/")
 }
