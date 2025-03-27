@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"regexp"
 	"strings"
@@ -20,10 +19,10 @@ type config struct {
 }*/
 
 type URLObject struct {
-	inlinks    int
-	outlinks   int
-	pageStatus int
-	crawlDepth int
+	Inlinks    int
+	Outlinks   int
+	PageStatus int
+	CrawlDepth int
 }
 
 type QueueEntry struct {
@@ -31,9 +30,14 @@ type QueueEntry struct {
 	crawlDepth int
 }
 
+type Secrets struct {
+	SheetID   string `json:"SheetID"`
+	SheetName string `json:"SheetName"`
+}
+
 // Send HTTP request to URL, returning HTML, response code, and any errors
 func fetchURL(url string) (string, int, error) {
-	time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
+	//time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
 
 	// Be respectful to the server by setting a user-agent 🙇🙇🙇
 	request, err := http.NewRequest("GET", url, nil)
@@ -123,7 +127,7 @@ func GoWild(root string) {
 
 		// 3b. Iterate through every found link on url
 		links := extractLinks(html)
-		URLObjects[url] = &URLObject{inlinks: 1, outlinks: len(links), pageStatus: status, crawlDepth: depth}
+		URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth}
 
 		for _, link := range links {
 
@@ -143,7 +147,7 @@ func GoWild(root string) {
 
 			// check if already processed, else add to queue (if not current URL)
 			if obj, ok := URLObjects[link]; ok {
-				obj.inlinks++
+				obj.Inlinks++
 			} else if re.MatchString(link) && !visitedURLs[link] {
 				URLQueue = append(URLQueue, QueueEntry{link, depth + 1})
 				visitedURLs[link] = true
@@ -155,13 +159,48 @@ func GoWild(root string) {
 
 	// 4. Results
 	for key, value := range URLObjects {
-		fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d\n", key, value.inlinks, value.pageStatus, value.outlinks, value.crawlDepth)
+		fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d\n", key, value.Inlinks, value.PageStatus, value.Outlinks, value.CrawlDepth)
 	}
 	fmt.Printf("Successfully crawled %s\n", root)
 	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(URLObjects))
 	fmt.Printf(" ↳ Total crawl time: %s\n", time.Since(start))
+
+	fmt.Printf("Writing export to sheets")
+
+	secrets, err := LoadSecrets("secrets.json")
+	if err != nil {
+		fmt.Println("Error loading secrets;", err)
+		return
+	}
+
+	if err := WriteToSheet(secrets.SheetID, secrets.SheetName, URLObjects); err != nil {
+		fmt.Printf("Error: %v", err)
+	}
+}
+
+func GoTame() {
+	// substitutes a crawl (so I don't recrawl every time)
+	URLObjects := make(map[string]*URLObject)
+	URLObjects["https://example.com/page1"] = &URLObject{Inlinks: 5, Outlinks: 3, PageStatus: 200, CrawlDepth: 2}
+	URLObjects["https://example.com/page2"] = &URLObject{Inlinks: 8, Outlinks: 2, PageStatus: 301, CrawlDepth: 3}
+	URLObjects["https://example.com/page3"] = &URLObject{Inlinks: 2, Outlinks: 7, PageStatus: 404, CrawlDepth: 1}
+
+	secrets, err := LoadSecrets("secrets.json")
+	if err != nil {
+		fmt.Println("Error loading secrets;", err)
+		return
+	}
+
+	// Debug
+	fmt.Println("Spreadsheet ID:", secrets.SheetID)
+	fmt.Println("Sheet Name:", secrets.SheetName)
+
+	if err := WriteToSheet(secrets.SheetID, secrets.SheetName, URLObjects); err != nil {
+		fmt.Printf("Error: %v", err)
+	}
 }
 
 func main() {
 	//GoWild("https://web-scraping.dev/")
+	//GoTame() //test method which bypasses a crawl
 }
