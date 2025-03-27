@@ -6,7 +6,11 @@ import (
 	"os"
 )
 
-// Place for code to import settings data
+type Secrets struct {
+	SheetID   string `json:"SheetID"`
+	SheetName string `json:"SheetName"`
+}
+
 func LoadSecrets(filename string) (*Secrets, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {

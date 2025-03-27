@@ -30,11 +30,6 @@ type QueueEntry struct {
 	crawlDepth int
 }
 
-type Secrets struct {
-	SheetID   string `json:"SheetID"`
-	SheetName string `json:"SheetName"`
-}
-
 // Send HTTP request to URL, returning HTML, response code, and any errors
 func fetchURL(url string) (string, int, error) {
 	//time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
@@ -202,5 +197,6 @@ func GoTame() {
 
 func main() {
 	//GoWild("https://web-scraping.dev/")
+	GoWild("https://www.hookflash.co.uk/")
 	//GoTame() //test method which bypasses a crawl
 }
