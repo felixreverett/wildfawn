@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -196,7 +197,11 @@ func GoTame() {
 }
 
 func main() {
-	//GoWild("https://web-scraping.dev/")
-	GoWild("https://www.hookflash.co.uk/")
+	data, err := os.ReadFile("rooturl.txt")
+	if err != nil {
+		fmt.Println("Error loading File: ", err)
+	}
+	url := string(data)
+	GoWild(url)
 	//GoTame() //test method which bypasses a crawl
 }
