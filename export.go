@@ -14,11 +14,9 @@ import (
 	"google.golang.org/api/sheets/v4"
 )
 
-func CreateNewSheet(sheetID string, )
+//func CreateNewSheet(sheetID string)
 
-func WriteNewSheet(sheetID string, data map[string]*URLObject) error {
-
-}
+//func WriteNewSheet(sheetID string, data map[string]*URLObject) error {}
 
 func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) error {
 
