@@ -1,8 +1,11 @@
 package main
 
-// Place for code to export crawl data to:
-// - Excel
-// - General-purpose JSON export
+/*
+| - - export.go - -
+| Contains functionality for post-crawl data exports to:
+| - Excel
+| - General-purpose JSON export (WIP)
+*/
 
 import (
 	"context"
@@ -26,7 +29,7 @@ func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) 
 		return fmt.Errorf("error: failed to read credentials file: %v", err)
 	}
 
-	// 2. Configure a JSON Web Token to authenticate requests to the Google Sheets API
+	// 2. Configure JSON web token to authenticate requests to the Google Sheets API
 	config, err := google.JWTConfigFromJSON(credentials, sheets.SpreadsheetsScope)
 	if err != nil {
 		return fmt.Errorf("error: failed to parse credentials: %v", err)
@@ -42,10 +45,10 @@ func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) 
 
 	// Convert URLObject to interface for Sheets
 	var values [][]interface{}
-	values = append(values, []interface{}{"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth"}) //headers
+	values = append(values, []interface{}{"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth", "Indexability", "Canonical"}) //headers
 
 	for url, obj := range data {
-		row := []interface{}{url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth}
+		row := []interface{}{url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth, obj.Indexability, obj.Canonical}
 		values = append(values, row)
 	}
 
