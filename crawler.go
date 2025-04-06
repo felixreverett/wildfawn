@@ -33,31 +33,40 @@ type QueueEntry struct {
 }
 
 // Send HTTP request to URL, returning HTML, response code, and any errors
-func fetchURL(url string) (string, int, error) {
+func fetchURL(url string) (string, int, string, error) {
 	//time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
 
 	// Be respectful to the server by setting a user-agent 🙇🙇🙇
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", 0, err
+		return "", 0, "", err
 	}
 
 	request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
 
-	client := &http.Client{}
+	client := &http.Client{
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 
 	response, err := client.Do(request)
 	if err != nil {
-		return "", 0, nil
+		return "", 0, "", nil
 	}
 	defer response.Body.Close()
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", response.StatusCode, err
+		return "", response.StatusCode, "", err
 	}
 
-	return string(body), response.StatusCode, nil
+	redirectTo := ""
+	if response.StatusCode >= 300 && response.StatusCode < 400 {
+		redirectTo = response.Header.Get("Location")
+	}
+
+	return string(body), response.StatusCode, redirectTo, nil
 }
 
 func parseHTML(htmlString string) (bool, string) {
@@ -166,13 +175,25 @@ func Crawl(root string) (map[string]*URLObject, error) {
 
 		URLQueue = URLQueue[1:]
 
-		html, status, err := fetchURL(url)
+		html, status, redirectTo, err := fetchURL(url)
 		if err != nil {
 			fmt.Println("> Error fetching URL:", err)
 			return nil, err
 		}
 
-		indexable, canonical := parseHTML(html)
+		indexable := false
+		canonical := ""
+
+		// Check for redirect status
+		if status >= 300 && status < 400 {
+			if redirectTo != "" && !visitedURLs[redirectTo] {
+				URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
+				visitedURLs[redirectTo] = true
+				fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
+			}
+		} else if status == 200 {
+			indexable, canonical = parseHTML(html)
+		}
 
 		// 3b. Iterate through every found link on url
 		links := extractLinks(html)
