@@ -16,7 +16,7 @@
 
 ### QOL:
 - ✅ Parse relative & absolute URLs
-- ⬜️ Evaluate site preference for naked or www. URLs
+- ✅ Evaluate site preference for naked or www. URLs
 - ⬜️ Read robots.txt
   - ⬜️ Add option to respect robots.txt
   - ⬜️ Read sitemaps
