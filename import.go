@@ -1,5 +1,11 @@
 package main
 
+/*
+| - - import.go - -
+| Contains all relevant input data for main processing
+|
+*/
+
 import (
 	"encoding/json"
 	"fmt"

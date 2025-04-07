@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
@@ -22,6 +23,8 @@ import (
 //func WriteNewSheet(sheetID string, data map[string]*URLObject) error {}
 
 func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) error {
+	start := time.Now()
+	fmt.Printf("Writing export to sheets\n")
 
 	// 1. Load credentials
 	credentials, err := os.ReadFile("service_account.json")
@@ -64,10 +67,10 @@ func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) 
 	_, err = service.Spreadsheets.Values.Update(sheetID, writeRange, valueRange).ValueInputOption("RAW").Do()
 
 	if err != nil {
-		return fmt.Errorf("error: failed to write data to sheet; %v", err)
+		return fmt.Errorf("error: failed to write data to sheet: %v", err)
 	}
 
-	fmt.Println("Data successfully written to Sheet")
+	fmt.Printf("Data successfully written to Sheet in %s\n", time.Since(start))
 
 	return nil
 }
