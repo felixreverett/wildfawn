@@ -78,10 +78,11 @@ func parseHTML(htmlString string) (bool, string) {
 	indexable := true
 	canonical := ""
 
+	// 2. recursive function to parse html
 	var traverseHTML func(*html.Node)
 	traverseHTML = func(n *html.Node) {
 		if n.Type == html.ElementNode {
-			// 2a. check for <meta name="robots" content="noindex">
+			// a. check for <meta name="robots" content="noindex">
 			if n.Data == "meta" {
 				var name, content string
 				for _, attr := range n.Attr {
@@ -97,7 +98,7 @@ func parseHTML(htmlString string) (bool, string) {
 				}
 			}
 
-			// 2b. check for canonical
+			// b. check for canonical
 			if n.Data == "link" {
 				var rel, href string
 				for _, attr := range n.Attr {
@@ -146,35 +147,85 @@ func extractLinks(htmlString string) []string {
 	}
 }
 
+// normalises URLs to site's preference (to avoid endless www. redirects)
+func detectWWWPreference(root string) (string, error) {
+	_, status, redirectTo, err := fetchURL(root)
+	if err != nil {
+		return root, err
+	}
+
+	if status >= 300 && status < 400 && redirectTo != "" {
+		rootHost := extractHost(root)
+		redirectHost := extractHost(redirectTo)
+
+		if rootHost != redirectHost {
+			fmt.Printf("Detected www preference: %s -> %s\n", root, redirectTo)
+			return redirectTo, nil
+		}
+	}
+
+	return root, nil
+}
+
+// extract host of URL
+func extractHost(url string) string {
+	url = strings.TrimPrefix(url, "http://")
+	url = strings.TrimPrefix(url, "https://")
+	parts := strings.Split(url, "/")
+	return parts[0]
+}
+
+func normaliseWWW(url, preferredRoot string) string {
+	urlHost := extractHost(url)
+	preferredHost := extractHost(preferredRoot)
+
+	if strings.Contains(preferredHost, "www.") && !strings.Contains(urlHost, "www.") {
+		return strings.Replace(url, urlHost, preferredHost, 1)
+	} else if !strings.Contains(preferredHost, "www.") && strings.Contains(urlHost, "www.") {
+		return strings.Replace(url, urlHost, preferredHost, 1)
+	}
+	return url
+}
+
 func Crawl(root string) (map[string]*URLObject, error) {
 
-	// 1. Prepare regex to only crawl same-site URLs
-	regexPattern := fmt.Sprintf("%s.*", root)
+	// 1. detect preference for www or non www
+	root, err := detectWWWPreference(root)
+	if err != nil {
+		fmt.Println("Error detecting www preference:", err)
+		return nil, err
+	}
+	fmt.Println("> Normalising all URLs to:", root) //debug
 
-	re, err := regexp.Compile(regexPattern)
+	// 2. prepare regex to only crawl same-site URLs
+	host := extractHost(root)
+	regexPattern := fmt.Sprintf("^https?://%s.*", host)
+	rootRegex, err := regexp.Compile(regexPattern)
 
 	if err != nil {
 		fmt.Println("Error compiling regex:", err)
 		return nil, err
 	}
 
-	// 2. Prepare objects data structure
+	// 3. prepare data structures
 	URLObjects := make(map[string]*URLObject)
 
 	visitedURLs := make(map[string]bool)
 
-	// 3. Crawl site
+	// 4. crawl every URL in a queue
 	var URLQueue []QueueEntry
 	URLQueue = append(URLQueue, QueueEntry{root, 0})
 	visitedURLs[root] = true
 
 	for len(URLQueue) > 0 {
+		// a. pop
 		url := URLQueue[0].url
 		fmt.Printf(". . . Queue size: %d | Crawling %s\n", len(URLQueue), url) //debug
 		depth := URLQueue[0].crawlDepth
 
 		URLQueue = URLQueue[1:]
 
+		// b. fetch
 		html, status, redirectTo, err := fetchURL(url)
 		if err != nil {
 			fmt.Println("> Error fetching URL:", err)
@@ -184,7 +235,7 @@ func Crawl(root string) (map[string]*URLObject, error) {
 		indexable := false
 		canonical := ""
 
-		// Check for redirect status
+		// c. check for redirect status
 		if status >= 300 && status < 400 {
 			if redirectTo != "" && !visitedURLs[redirectTo] {
 				URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
@@ -195,21 +246,21 @@ func Crawl(root string) (map[string]*URLObject, error) {
 			indexable, canonical = parseHTML(html)
 		}
 
-		// 3b. Iterate through every found link on url
+		// d. collect every link on current URL
 		links := extractLinks(html)
 
-		// 3c. Write URL results to URLObject
+		// e. add current URL results to URLObject
 		URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth, Indexability: indexable, Canonical: canonical}
 
-		// 3d.
+		// f. iterate through all links of current URL
 		for _, link := range links {
 
-			// ignore 0-length URLs
+			// i. ignore 0-length URLs
 			if len(link) == 0 {
 				continue
 			}
 
-			// resolve relative URLs
+			// ii. resolve relative URLs
 			if link[0] == '/' {
 				if root[len(root)-1] == '/' {
 					link = root[:len(root)-1] + link
@@ -218,14 +269,20 @@ func Crawl(root string) (map[string]*URLObject, error) {
 				}
 			}
 
-			// check if already processed, else add to queue (if not current URL)
+			// iii. ignore external urls
+			if !rootRegex.MatchString(link) {
+				continue
+			}
+
+			// iv. normalise URLs to WWW preference
+			link = normaliseWWW(link, root)
+
+			// v. check if URL already processed, else add to queue (if not current URL)
 			if obj, ok := URLObjects[link]; ok {
 				obj.Inlinks++
-			} else if re.MatchString(link) && !visitedURLs[link] {
+			} else if !visitedURLs[link] {
 				URLQueue = append(URLQueue, QueueEntry{link, depth + 1})
 				visitedURLs[link] = true
-			} else {
-				//fmt.Println("URL invalid:", link) //debug
 			}
 		}
 	}
@@ -252,11 +309,9 @@ func GoWild(root string) {
 	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(URLObjects))
 	fmt.Printf(" ↳ Total crawl time: %s\n", time.Since(start))
 
-	fmt.Printf("Writing export to sheets")
-
 	secrets, err := LoadSecrets("secrets.json")
 	if err != nil {
-		fmt.Println("Error loading secrets;", err)
+		fmt.Println("Error loading secrets:", err)
 		return
 	}
 
