@@ -12,6 +12,11 @@ func main() {
 		fmt.Println("Error loading File: ", err)
 	}
 	url := string(data)
-	GoWild(url)
+
+	// 2. Crawl
+	URLObjects := GoWild(url)
+
+	// 3. Export
+	WriteWild(URLObjects)
 	//GoTame() //test method which bypasses a crawl and exports data
 }

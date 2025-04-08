@@ -74,3 +74,16 @@ func WriteToSheet(sheetID string, sheetName string, data map[string]*URLObject) 
 
 	return nil
 }
+
+func WriteWild(URLObjects map[string]*URLObject) {
+
+	secrets, err := LoadSecrets("secrets.json")
+	if err != nil {
+		fmt.Println("Error loading secrets:", err)
+		return
+	}
+
+	if err := WriteToSheet(secrets.SheetID, secrets.SheetName, URLObjects); err != nil {
+		fmt.Printf("Error: %v", err)
+	}
+}

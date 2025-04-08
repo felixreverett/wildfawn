@@ -290,17 +290,21 @@ func Crawl(root string) (map[string]*URLObject, error) {
 }
 
 // Crawl all URLs on a site
-func GoWild(root string) {
+func GoWild(root string) map[string]*URLObject {
 	start := time.Now()
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
+	// 1. Get robots
+	// WIP
+
+	// 2. Crawl site
 	URLObjects, err := Crawl(root)
 	if err != nil {
 		fmt.Println("failed to crawl root: ", err)
-		return
+		return nil
 	}
 
-	// 4. Results
+	// 3. Return (and print) results
 	for key, value := range URLObjects {
 		fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d | indexable: %v | canonical: %s\n",
 			key, value.Inlinks, value.PageStatus, value.Outlinks, value.CrawlDepth, value.Indexability, value.Canonical)
@@ -309,15 +313,7 @@ func GoWild(root string) {
 	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(URLObjects))
 	fmt.Printf(" ↳ Total crawl time: %s\n", time.Since(start))
 
-	secrets, err := LoadSecrets("secrets.json")
-	if err != nil {
-		fmt.Println("Error loading secrets:", err)
-		return
-	}
-
-	if err := WriteToSheet(secrets.SheetID, secrets.SheetName, URLObjects); err != nil {
-		fmt.Printf("Error: %v", err)
-	}
+	return URLObjects
 }
 
 func GoTame() {
