@@ -7,12 +7,30 @@
 ## crawler.go:
 
 ### data collection:
-- ✅ Track crawl depth
-- ✅ Track page outlinks
-- ✅ Track 300's and redirectee URL
-- ⬜️ Track OnSitemap bool
-- ⬜️ Track IsOrphan bool
-- ⬜️ Track IsAllopatric bool (separated cluster)
+- Crawl metrics:
+  - ✅ Inlinks
+  - ✅ Outlinks
+  - ✅ Page Status (including 3xxs)
+  - ✅ Crawl Depth
+  - ✅ Indexability
+  - ✅ Canonical
+  - ⬜️ OnSitemap bool
+  - ⬜️ IsOrphan bool
+  - ⬜️ IsAllopatric bool (separated cluster)
+  - ⬜️ BlockedByRobots bool
+  - ⬜️ PageTitle
+  - ⬜️ MetaDescription
+  - ⬜️ H1*
+  - ⬜️ Soft 404
+- Post Parse metrics:
+  - ⬜️ Canonical Indexability*
+- Analysis metrics:
+  - ⬜️ total URLs
+  - ⬜️ total internal 200's
+  - ⬜️ total internal 3xx's (and chains)
+  - ⬜️ total internal 4xx's
+  - ⬜️ Pages with high crawl depth
+  - ⬜️ non-indexable URLs in sitemap
 
 ### QOL:
 - ✅ Parse relative & absolute URLs
