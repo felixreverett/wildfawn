@@ -220,7 +220,7 @@ func Crawl(root string) (map[string]*URLObject, error) {
 	for len(URLQueue) > 0 {
 		// a. pop
 		url := URLQueue[0].url
-		fmt.Printf(". . . Queue size: %d | Crawling %s\n", len(URLQueue), url) //debug
+		//fmt.Printf(". . . Queue size: %d | Crawling %s\n", len(URLQueue), url) //debug
 		depth := URLQueue[0].crawlDepth
 
 		URLQueue = URLQueue[1:]
@@ -295,7 +295,12 @@ func GoWild(root string) map[string]*URLObject {
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
 	// 1. Get robots
-	// WIP
+	robots, err := GetRobots(root)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(robots)
+	}
 
 	// 2. Crawl site
 	URLObjects, err := Crawl(root)
@@ -305,35 +310,15 @@ func GoWild(root string) map[string]*URLObject {
 	}
 
 	// 3. Return (and print) results
-	for key, value := range URLObjects {
-		fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d | indexable: %v | canonical: %s\n",
-			key, value.Inlinks, value.PageStatus, value.Outlinks, value.CrawlDepth, value.Indexability, value.Canonical)
-	}
+	/*
+		for key, value := range URLObjects {
+			fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d | indexable: %v | canonical: %s\n",
+				key, value.Inlinks, value.PageStatus, value.Outlinks, value.CrawlDepth, value.Indexability, value.Canonical)
+		}
+	*/
 	fmt.Printf("Successfully crawled %s\n", root)
 	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(URLObjects))
 	fmt.Printf(" ↳ Total crawl time: %s\n", time.Since(start))
 
 	return URLObjects
-}
-
-func GoTame() {
-	// substitutes a crawl (so I don't recrawl every time)
-	URLObjects := make(map[string]*URLObject)
-	URLObjects["https://example.com/page1"] = &URLObject{Inlinks: 5, Outlinks: 3, PageStatus: 200, CrawlDepth: 2}
-	URLObjects["https://example.com/page2"] = &URLObject{Inlinks: 8, Outlinks: 2, PageStatus: 301, CrawlDepth: 3}
-	URLObjects["https://example.com/page3"] = &URLObject{Inlinks: 2, Outlinks: 7, PageStatus: 404, CrawlDepth: 1}
-
-	secrets, err := LoadSecrets("secrets.json")
-	if err != nil {
-		fmt.Println("Error loading secrets;", err)
-		return
-	}
-
-	// Debug
-	fmt.Println("Spreadsheet ID:", secrets.SheetID)
-	fmt.Println("Sheet Name:", secrets.SheetName)
-
-	if err := WriteToSheet(secrets.SheetID, secrets.SheetName, URLObjects); err != nil {
-		fmt.Printf("Error: %v", err)
-	}
 }
