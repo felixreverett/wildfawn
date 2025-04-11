@@ -23,3 +23,16 @@ func GoTame() {
 		fmt.Printf("Error: %v", err)
 	}
 }
+
+func PrintSiteMap(robots Robots) {
+	fmt.Println("Debug - logging robots file:")
+	fmt.Println("Agents:")
+	for _, agent := range robots.Agents {
+		fmt.Printf("Agent name: %s\nAgent disallows: %v\nAgent allows: %v\n", agent.Name, agent.Disallow, agent.Allow)
+	}
+	fmt.Println("Sitemaps:")
+	for _, sitemap := range robots.Sitemaps {
+		fmt.Println(sitemap)
+	}
+	fmt.Printf("CrawlDelay: %d\n", robots.CrawlDelay)
+}
