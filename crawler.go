@@ -147,8 +147,8 @@ func extractLinks(htmlString string) []string {
 	}
 }
 
-// normalises URLs to site's preference (to avoid endless www. redirects)
-func detectWWWPreference(root string) (string, error) {
+// returns a URL's preferred www. config by checking for redirects
+func SetWWWPreference(root string) (string, error) {
 	_, status, redirectTo, err := fetchURL(root)
 	if err != nil {
 		return root, err
@@ -189,15 +189,7 @@ func normaliseWWW(url, preferredRoot string) string {
 
 func Crawl(root string) (map[string]*URLObject, error) {
 
-	// 1. detect preference for www or non www
-	root, err := detectWWWPreference(root)
-	if err != nil {
-		fmt.Println("Error detecting www preference:", err)
-		return nil, err
-	}
-	fmt.Println("> Normalising all URLs to:", root) //debug
-
-	// 2. prepare regex to only crawl same-site URLs
+	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
 	regexPattern := fmt.Sprintf("^https?://%s.*", host)
 	rootRegex, err := regexp.Compile(regexPattern)
@@ -207,12 +199,12 @@ func Crawl(root string) (map[string]*URLObject, error) {
 		return nil, err
 	}
 
-	// 3. prepare data structures
+	// 2. prepare data structures
 	URLObjects := make(map[string]*URLObject)
 
 	visitedURLs := make(map[string]bool)
 
-	// 4. crawl every URL in a queue
+	// 3. crawl every URL in a queue
 	var URLQueue []QueueEntry
 	URLQueue = append(URLQueue, QueueEntry{root, 0})
 	visitedURLs[root] = true
@@ -294,13 +286,23 @@ func GoWild(root string) map[string]*URLObject {
 	start := time.Now()
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
-	// 1. Get robots
+	// 1. detect and set preference for www or non www
+	root, err := SetWWWPreference(root)
+	if err != nil {
+		fmt.Println("Error detecting www preference:", err)
+		return nil
+	}
+	fmt.Println("> Normalising all URLs to:", root) //debug
+
+	// 2. Get robots
 	robots, err := GetRobots(root)
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		fmt.Println(robots)
+		PrintSiteMap(robots)
 	}
+
+	return nil //debug
 
 	// 2. Crawl site
 	URLObjects, err := Crawl(root)
