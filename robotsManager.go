@@ -88,8 +88,10 @@ func GetRobots(url string) (Robots, error) {
 	if err != nil {
 		return Robots{}, err
 	}
+
 	robotsURL := pruned + "/robots.txt"
 	robotsFile, status, _, err := fetchURL(robotsURL)
+
 	if status == 200 {
 		fmt.Printf("Found robots file at %s\n", robotsURL)
 		return ParseRobots(robotsFile), nil
