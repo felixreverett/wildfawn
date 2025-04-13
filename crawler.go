@@ -19,12 +19,17 @@ type config struct {
 }*/
 
 type URLObject struct {
-	Inlinks      int
-	Outlinks     int
-	PageStatus   int
-	CrawlDepth   int
-	Indexability bool
-	Canonical    string
+	Inlinks               int
+	Outlinks              int
+	PageStatus            int
+	CrawlDepth            int
+	NoIndex               bool
+	Indexability          bool
+	Canonical             string
+	MetaTitle             string
+	MetaTitleLength       int
+	MetaDescription       string
+	MetaDescriptionLength int
 }
 
 type QueueEntry struct {
@@ -69,13 +74,14 @@ func fetchURL(url string) (string, int, string, error) {
 	return string(body), response.StatusCode, redirectTo, nil
 }
 
-func parseHTML(htmlString string) (bool, string) {
+func parseHTML(htmlString string) (bool, bool, string) {
 	doc, err := html.Parse(strings.NewReader(htmlString))
 	if err != nil {
-		return true, ""
+		return true, false, ""
 	}
 
 	indexable := true
+	noIndex := false
 	canonical := ""
 
 	// 2. recursive function to parse html
@@ -95,6 +101,7 @@ func parseHTML(htmlString string) (bool, string) {
 				}
 				if name == "robots" && strings.Contains(strings.ToLower(content), "noindex") {
 					indexable = false
+					noIndex = true
 				}
 			}
 
@@ -121,7 +128,7 @@ func parseHTML(htmlString string) (bool, string) {
 	}
 
 	traverseHTML(doc)
-	return indexable, canonical
+	return indexable, noIndex, canonical
 }
 
 // returns a list of hrefs from an html string
@@ -225,6 +232,7 @@ func Crawl(root string) (map[string]*URLObject, error) {
 		}
 
 		indexable := false
+		noIndex := false
 		canonical := ""
 
 		// c. check for redirect status
@@ -235,14 +243,15 @@ func Crawl(root string) (map[string]*URLObject, error) {
 				fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
 			}
 		} else if status == 200 {
-			indexable, canonical = parseHTML(html)
+			indexable, noIndex, canonical = parseHTML(html)
 		}
 
 		// d. collect every link on current URL
 		links := extractLinks(html)
 
 		// e. add current URL results to URLObject
-		URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth, Indexability: indexable, Canonical: canonical}
+		URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
+			Indexability: indexable, NoIndex: noIndex, Canonical: canonical}
 
 		// f. iterate through all links of current URL
 		for _, link := range links {
