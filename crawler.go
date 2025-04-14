@@ -18,18 +18,27 @@ type config struct {
 	maxCrawlsPerSecond int
 }*/
 
+type URLObjectList struct {
+	URLObjects map[string]*URLObject
+}
+
 type URLObject struct {
-	Inlinks               int
-	Outlinks              int
-	PageStatus            int
-	CrawlDepth            int
-	NoIndex               bool
-	Indexability          bool
-	Canonical             string
+	Inlinks               int    // collected
+	Outlinks              int    // collected
+	PageStatus            int    // collected
+	CrawlDepth            int    // collected
+	NoIndex               bool   // collected
+	Indexability          bool   // collected
+	Canonical             string // collected
 	MetaTitle             string
 	MetaTitleLength       int
 	MetaDescription       string
 	MetaDescriptionLength int
+	// postcrawl metrics
+	IsOrphan             bool // collected
+	IsOnSitemap          bool
+	IsCanonicalIndexable bool // collected
+	IsSelfCanonicalising bool // collected
 }
 
 type QueueEntry struct {
@@ -194,7 +203,7 @@ func normaliseWWW(url, preferredRoot string) string {
 	return url
 }
 
-func Crawl(root string) (map[string]*URLObject, error) {
+func Crawl(root string) (URLObjectList, error) {
 
 	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
@@ -202,8 +211,8 @@ func Crawl(root string) (map[string]*URLObject, error) {
 	rootRegex, err := regexp.Compile(regexPattern)
 
 	if err != nil {
-		fmt.Println("Error compiling regex:", err)
-		return nil, err
+		fmt.Println("[!] Error compiling regex: ", err)
+		return URLObjectList{}, err
 	}
 
 	// 2. prepare data structures
@@ -227,8 +236,8 @@ func Crawl(root string) (map[string]*URLObject, error) {
 		// b. fetch
 		html, status, redirectTo, err := fetchURL(url)
 		if err != nil {
-			fmt.Println("> Error fetching URL:", err)
-			return nil, err
+			fmt.Println("[!] Error fetching URL: ", err)
+			return URLObjectList{}, err
 		}
 
 		indexable := false
@@ -240,7 +249,7 @@ func Crawl(root string) (map[string]*URLObject, error) {
 			if redirectTo != "" && !visitedURLs[redirectTo] {
 				URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
 				visitedURLs[redirectTo] = true
-				fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
+				//fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
 			}
 		} else if status == 200 {
 			indexable, noIndex, canonical = parseHTML(html)
@@ -287,21 +296,24 @@ func Crawl(root string) (map[string]*URLObject, error) {
 			}
 		}
 	}
-	return URLObjects, nil
+
+	URLObjectList := URLObjectList{URLObjects: URLObjects}
+
+	return URLObjectList, nil
 }
 
 // Crawl all URLs on a site
-func GoWild(root string) map[string]*URLObject {
+func GoWild(root string) (URLObjectList, error) {
 	start := time.Now()
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
 	// 1. detect and set preference for www or non www
 	root, err := SetWWWPreference(root)
 	if err != nil {
-		fmt.Println("Error detecting www preference:", err)
-		return nil
+		fmt.Println("[!] Error detecting www preference:", err)
+		return URLObjectList{}, err
 	}
-	fmt.Println("> Normalising all URLs to:", root) //debug
+	fmt.Println("(i) Normalising all URLs to:", root) //debug
 
 	// 2. Get robots
 	robots, err := GetRobots(root)
@@ -311,16 +323,17 @@ func GoWild(root string) map[string]*URLObject {
 		PrintSiteMap(robots)
 	}
 
-	return nil //debug
-
 	// 2. Crawl site
-	URLObjects, err := Crawl(root)
+	objectList, err := Crawl(root)
 	if err != nil {
-		fmt.Println("failed to crawl root: ", err)
-		return nil
+		fmt.Println("[!] Failed to crawl root: ", err)
+		return URLObjectList{}, err
 	}
 
-	// 3. Return (and print) results
+	// 3. Calculate post-crawl metrics for each URLObject
+	objectList.RunPostCrawl()
+
+	// 4. Return (and print) results
 	/*
 		for key, value := range URLObjects {
 			fmt.Printf("URL: %s\n ↳ Inlinks: %d | pageStatus: %d | outlinks: %d | crawl depth: %d | indexable: %v | canonical: %s\n",
@@ -328,8 +341,8 @@ func GoWild(root string) map[string]*URLObject {
 		}
 	*/
 	fmt.Printf("Successfully crawled %s\n", root)
-	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(URLObjects))
+	fmt.Printf(" ↳ Total URLs crawled: %d\n", len(objectList.URLObjects))
 	fmt.Printf(" ↳ Total crawl time: %s\n", time.Since(start))
 
-	return URLObjects
+	return objectList, nil
 }
