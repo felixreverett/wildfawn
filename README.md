@@ -27,3 +27,7 @@ A small project to develop a propietary lightweight web crawler to monitor techn
 
 ## Fun technical features in this project
 - receiver functions (see postcrawl.go)
+    - I'm really just forcing a use of these to improve my familiarity with the syntax.
+- pointers - an egregious disregard for functional programming practices :)
+    - I've been using these a bit to improve my understanding of pointers, but I've pulled back a little because I prefer pure functions.
+- clean method signatures (see crawler.go)

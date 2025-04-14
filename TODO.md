@@ -12,32 +12,35 @@
   - ✅ Outlinks
   - ✅ Page Status (including 3xxs)
   - ✅ Crawl Depth
+  - ✅ No Index
   - ✅ Indexability
   - ✅ Canonical
   - ⬜️ OnSitemap bool
-  - ⬜️ IsOrphan bool
+  - ✅ IsOrphan bool
+  - ✅ Is Canonical Indexable bool
+  - ✅ Is Self Canonicalising bool
   - ⬜️ IsAllopatric bool (separated cluster)
   - ⬜️ BlockedByRobots bool
   - ⬜️ PageTitle
   - ⬜️ MetaDescription
   - ⬜️ H1*
-  - ⬜️ Soft 404
 - Post Parse metrics:
   - ⬜️ Canonical Indexability*
 - Analysis metrics:
-  - ⬜️ total URLs
-  - ⬜️ total internal 200's
-  - ⬜️ total internal 3xx's (and chains)
-  - ⬜️ total internal 4xx's
+  - ✅ total URLs
+  - ✅ total internal 200's
+  - ✅ total internal 3xx's (and chains)
+  - ✅ total internal 4xx's
+  - ✅ total internal 5xxx's
   - ⬜️ Pages with high crawl depth
   - ⬜️ non-indexable URLs in sitemap
 
 ### QOL:
 - ✅ Parse relative & absolute URLs
 - ✅ Evaluate site preference for naked or www. URLs
-- ⬜️ Read robots.txt
+- ✅ Read robots.txt
   - ⬜️ Add option to respect robots.txt
-  - ⬜️ Read sitemaps
+  - ⬜️ check sitemaps
 
 ## import.go:
 - ⬜️ Implement config
