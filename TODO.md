@@ -31,7 +31,7 @@
   - ✅ total internal 200's
   - ✅ total internal 3xx's (and chains)
   - ✅ total internal 4xx's
-  - ✅ total internal 5xxx's
+  - ✅ total internal 5xx's
   - ⬜️ Pages with high crawl depth
   - ⬜️ non-indexable URLs in sitemap
 
@@ -44,6 +44,7 @@
 
 ## import.go:
 - ⬜️ Implement config
+- ⬜️ Import from Google Sheet
 
 ## export.go:
 - ✅ Write crawl to existing sheet in Google Sheets
