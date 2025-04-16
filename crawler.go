@@ -11,13 +11,6 @@ import (
 	"golang.org/x/net/html"
 )
 
-/*
-type config struct {
-	respectRobots bool
-	maxCrawlDepth int
-	maxCrawlsPerSecond int
-}*/
-
 type URLObjectList struct {
 	URLObjects map[string]*URLObject
 }
@@ -56,7 +49,7 @@ func fetchURL(url string) (string, int, string, error) {
 		return "", 0, "", err
 	}
 
-	request.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
+	request.Header.Set("User-Agent", "Mozilla/5.0 (compatible; fawnbot)")
 
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
