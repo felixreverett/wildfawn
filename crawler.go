@@ -39,9 +39,15 @@ type QueueEntry struct {
 	crawlDepth int
 }
 
+func fetchURLQuick(url string) (string, int, string, error) {
+	return fetchURL(url, Config{RespectRobots: false}, Robots{})
+}
+
 // Send HTTP request to URL, returning HTML, response code, and any errors
-func fetchURL(url string) (string, int, string, error) {
-	//time.Sleep(time.Second * time.Duration(rand.Intn(2))) // Wait 1-2 seconds
+func fetchURL(url string, config Config, robots Robots) (string, int, string, error) {
+	if config.RespectRobots && robots.CrawlDelay > 0 {
+		time.Sleep(time.Duration(robots.CrawlDelay) * time.Second)
+	}
 
 	// Be respectful to the server by setting a user-agent 🙇🙇🙇
 	request, err := http.NewRequest("GET", url, nil)
@@ -158,7 +164,7 @@ func extractLinks(htmlString string) []string {
 
 // returns a URL's preferred www. config by checking for redirects
 func SetWWWPreference(root string) (string, error) {
-	_, status, redirectTo, err := fetchURL(root)
+	_, status, redirectTo, err := fetchURLQuick(root)
 	if err != nil {
 		return root, err
 	}
@@ -196,7 +202,7 @@ func normaliseWWW(url, preferredRoot string) string {
 	return url
 }
 
-func Crawl(root string) (URLObjectList, error) {
+func Crawl(root string, config Config, robots Robots) (URLObjectList, error) {
 
 	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
@@ -227,66 +233,70 @@ func Crawl(root string) (URLObjectList, error) {
 		URLQueue = URLQueue[1:]
 
 		// b. fetch
-		html, status, redirectTo, err := fetchURL(url)
-		if err != nil {
-			fmt.Println("[!] Error fetching URL: ", err)
-			return URLObjectList{}, err
-		}
-
-		indexable := false
-		noIndex := false
-		canonical := ""
-
-		// c. check for redirect status
-		if status >= 300 && status < 400 {
-			if redirectTo != "" && !visitedURLs[redirectTo] {
-				URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
-				visitedURLs[redirectTo] = true
-				//fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
-			}
-		} else if status == 200 {
-			indexable, noIndex, canonical = parseHTML(html)
-		}
-
-		// d. collect every link on current URL
-		links := extractLinks(html)
-
-		// e. add current URL results to URLObject
-		URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
-			Indexability: indexable, NoIndex: noIndex, Canonical: canonical}
-
-		// f. iterate through all links of current URL
-		for _, link := range links {
-
-			// i. ignore 0-length URLs
-			if len(link) == 0 {
-				continue
+		if !config.RespectRobots || !IsURLBlockedByRobots(url, robots) {
+			html, status, redirectTo, err := fetchURL(url, config, robots)
+			if err != nil {
+				fmt.Println("[!] Error fetching URL: ", err)
+				return URLObjectList{}, err
 			}
 
-			// ii. resolve relative URLs
-			if link[0] == '/' {
-				if root[len(root)-1] == '/' {
-					link = root[:len(root)-1] + link
-				} else {
-					link = root + link
+			indexable := false
+			noIndex := false
+			canonical := ""
+
+			// c. check for redirect status
+			if status >= 300 && status < 400 {
+				if redirectTo != "" && !visitedURLs[redirectTo] {
+					URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
+					visitedURLs[redirectTo] = true
+					//fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
+				}
+			} else if status == 200 {
+				indexable, noIndex, canonical = parseHTML(html)
+			}
+
+			// d. collect every link on current URL
+			links := extractLinks(html)
+
+			// e. add current URL results to URLObject
+			URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
+				Indexability: indexable, NoIndex: noIndex, Canonical: canonical}
+
+			// f. iterate through all links of current URL
+			for _, link := range links {
+
+				// i. ignore 0-length URLs
+				if len(link) == 0 {
+					continue
+				}
+
+				// ii. resolve relative URLs
+				if link[0] == '/' {
+					if root[len(root)-1] == '/' {
+						link = root[:len(root)-1] + link
+					} else {
+						link = root + link
+					}
+				}
+
+				// iii. ignore external urls
+				if !rootRegex.MatchString(link) {
+					continue
+				}
+
+				// iv. normalise URLs to WWW preference
+				link = normaliseWWW(link, root)
+
+				// v. check if URL already processed, else add to queue (if not current URL)
+				if obj, ok := URLObjects[link]; ok {
+					obj.Inlinks++
+				} else if !visitedURLs[link] {
+					URLQueue = append(URLQueue, QueueEntry{link, depth + 1})
+					visitedURLs[link] = true
 				}
 			}
-
-			// iii. ignore external urls
-			if !rootRegex.MatchString(link) {
-				continue
-			}
-
-			// iv. normalise URLs to WWW preference
-			link = normaliseWWW(link, root)
-
-			// v. check if URL already processed, else add to queue (if not current URL)
-			if obj, ok := URLObjects[link]; ok {
-				obj.Inlinks++
-			} else if !visitedURLs[link] {
-				URLQueue = append(URLQueue, QueueEntry{link, depth + 1})
-				visitedURLs[link] = true
-			}
+		} else {
+			fmt.Printf("URL blocked by robots: %s\n", url) //debug
 		}
 	}
 
@@ -296,7 +306,7 @@ func Crawl(root string) (URLObjectList, error) {
 }
 
 // Crawl all URLs on a site
-func GoWild(root string) (URLObjectList, error) {
+func GoWild(root string, config Config) (URLObjectList, error) {
 	start := time.Now()
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
@@ -317,7 +327,7 @@ func GoWild(root string) (URLObjectList, error) {
 	}
 
 	// 2. Crawl site
-	objectList, err := Crawl(root)
+	objectList, err := Crawl(root, config, robots)
 	if err != nil {
 		fmt.Println("[!] Failed to crawl root: ", err)
 		return URLObjectList{}, err
