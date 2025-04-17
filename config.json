@@ -1,0 +1,5 @@
+{
+    "RespectRobots": true,
+    "MaxCrawlDepth": 100,
+    "MaxCrawlsPerSecond": 10
+}
