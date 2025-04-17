@@ -90,13 +90,35 @@ func GetRobots(url string) (Robots, error) {
 	}
 
 	robotsURL := pruned + "/robots.txt"
-	robotsFile, status, _, err := fetchURL(robotsURL)
+	robotsFile, status, _, err := fetchURLQuick(robotsURL)
 
 	if status == 200 {
-		fmt.Printf("Found robots file at %s\n", robotsURL)
+		fmt.Printf("(i) Found robots file at %s\n", robotsURL)
 		return ParseRobots(robotsFile), nil
 	} else {
-		fmt.Printf("Could not find robots file at %s\n", robotsURL)
+		fmt.Printf("[!] Could not find robots file at %s\n", robotsURL)
 		return Robots{}, err
 	}
+}
+
+func IsURLBlockedByRobots(url string, robots Robots) bool {
+	url = strings.ToLower(url)
+
+	for _, agent := range robots.Agents {
+		if agent.Name == "*" || strings.Contains("fawnbot", strings.ToLower(agent.Name)) {
+			for _, allow := range agent.Allow {
+				if strings.HasPrefix(url, allow) {
+					return false
+				}
+			}
+
+			for _, disallow := range agent.Disallow {
+				if disallow == "/" || strings.HasPrefix(url, disallow) {
+					return true
+				}
+			}
+		}
+	}
+
+	return false
 }
