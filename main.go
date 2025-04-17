@@ -14,8 +14,16 @@ func main() {
 	}
 	url := string(data)
 
+	// b. Load Config
+	config, err := LoadConfig("config.json")
+	if err != nil {
+		fmt.Println("[!] Error loading config. Using default: ", err)
+	} else {
+		fmt.Println("(i) Successfully loaded config")
+	}
+
 	// 2. Crawl
-	URLObjectList, err := GoWild(url)
+	URLObjectList, err := GoWild(url, config)
 	if err != nil {
 		fmt.Println("[!] Error crawling root URL. Aborting crawl. Error: ", err)
 		return
