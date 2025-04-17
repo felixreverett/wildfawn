@@ -13,6 +13,29 @@ import (
 	"time"
 )
 
+type Config struct {
+	RespectRobots      bool `json:"RespectRobots"`      // unimplemented
+	MaxCrawlDepth      int  `json:"MaxCrawlDepth"`      // unimplemented
+	MaxCrawlsPerSecond int  `json:"MaxCrawlsPerSecond"` // unimplemented
+}
+
+func LoadConfig(filename string) (Config, error) {
+	defaultConfig := Config{RespectRobots: false, MaxCrawlDepth: 99, MaxCrawlsPerSecond: 10}
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return defaultConfig, fmt.Errorf("failed to load config file: %v", err)
+	}
+
+	var config Config
+	if err := json.Unmarshal(data, &config); err != nil {
+		return defaultConfig, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+
+	return config, nil
+}
+
+// - - -
+
 type Secrets struct {
 	SheetID   string `json:"SheetID"`
 	SheetName string `json:"SheetName"`
@@ -31,6 +54,8 @@ func LoadSecrets(filename string) (*Secrets, error) {
 
 	return &secrets, nil
 }
+
+// - - -
 
 type SiteCrawlConfig struct {
 	Root           string
