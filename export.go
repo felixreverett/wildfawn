@@ -50,11 +50,11 @@ func WriteToSheet(sheetID string, sheetName string, URLObjectList URLObjectList)
 	// Convert URLObject to interface for Sheets
 	var values [][]interface{}
 	values = append(values, []interface{}{
-		"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth", "No Index", "Indexability", "Canonical", "Self-Canonicalises", "Is Canonical Indexable", "Is Orphan"}) //headers
+		"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth", "No Index", "Indexability", "Canonical", "Self-Canonicalises", "Is Canonical Indexable", "Is Orphan", "Blocked by Robots"}) //headers
 
 	for url, obj := range data {
 		row := []interface{}{
-			url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth, obj.NoIndex, obj.Indexability, obj.Canonical, obj.IsSelfCanonicalising, obj.IsCanonicalIndexable, obj.IsOrphan}
+			url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth, obj.NoIndex, obj.Indexability, obj.Canonical, obj.IsSelfCanonicalising, obj.IsCanonicalIndexable, obj.IsOrphan, obj.IsBlockedByRobots}
 		values = append(values, row)
 	}
 
