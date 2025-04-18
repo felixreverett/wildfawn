@@ -27,6 +27,7 @@ type URLObject struct {
 	MetaTitleLength       int
 	MetaDescription       string
 	MetaDescriptionLength int
+	IsBlockedByRobots     bool // collected
 	// postcrawl metrics
 	IsOrphan             bool // collected
 	IsOnSitemap          bool
@@ -225,15 +226,16 @@ func Crawl(root string, config Config, robots Robots) (URLObjectList, error) {
 	visitedURLs[root] = true
 
 	for len(URLQueue) > 0 {
+
 		// a. pop
 		url := URLQueue[0].url
-		//fmt.Printf(". . . Queue size: %d | Crawling %s\n", len(URLQueue), url) //debug
 		depth := URLQueue[0].crawlDepth
-
 		URLQueue = URLQueue[1:]
 
-		// b. fetch
-		if !config.RespectRobots || !IsURLBlockedByRobots(url, robots) {
+		isBlockedByRobots := IsURLBlockedByRobots(url, robots)
+
+		// b. fetch (if allowed)
+		if !config.RespectRobots || !isBlockedByRobots {
 			html, status, redirectTo, err := fetchURL(url, config, robots)
 			if err != nil {
 				fmt.Println("[!] Error fetching URL: ", err)
@@ -260,7 +262,7 @@ func Crawl(root string, config Config, robots Robots) (URLObjectList, error) {
 
 			// e. add current URL results to URLObject
 			URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
-				Indexability: indexable, NoIndex: noIndex, Canonical: canonical}
+				Indexability: indexable, NoIndex: noIndex, Canonical: canonical, IsBlockedByRobots: isBlockedByRobots}
 
 			// f. iterate through all links of current URL
 			for _, link := range links {
