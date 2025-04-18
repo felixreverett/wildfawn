@@ -4,8 +4,6 @@
 - ⬜️ Oversee full import, crawl, and export
 - ⬜️ Add gocurrency
 
-## crawler.go:
-
 ### data collection:
 - Crawl metrics:
   - ✅ Inlinks
@@ -20,7 +18,7 @@
   - ✅ Is Canonical Indexable bool
   - ✅ Is Self Canonicalising bool
   - ⬜️ IsAllopatric bool (separated cluster)
-  - ⬜️ BlockedByRobots bool
+  - ✅ BlockedByRobots bool
   - ⬜️ PageTitle
   - ⬜️ MetaDescription
   - ⬜️ H1*
@@ -39,11 +37,15 @@
 - ✅ Parse relative & absolute URLs
 - ✅ Evaluate site preference for naked or www. URLs
 - ✅ Read robots.txt
-  - ⬜️ Add option to respect robots.txt
+  - ✅ Add option to respect robots.txt
   - ⬜️ check sitemaps
 
+## crawler.go:
+- ✅ Add respect disallows
+- ✅ Add respect crawl delay
+
 ## import.go:
-- ⬜️ Implement config
+- ✅ Implement config
 - ⬜️ Import from Google Sheet
 
 ## export.go:
