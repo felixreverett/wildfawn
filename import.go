@@ -13,20 +13,20 @@ import (
 	"time"
 )
 
-type Config struct {
+type ProgramConfig struct {
 	RespectRobots      bool `json:"RespectRobots"`      // unimplemented
 	MaxCrawlDepth      int  `json:"MaxCrawlDepth"`      // unimplemented
 	MaxCrawlsPerSecond int  `json:"MaxCrawlsPerSecond"` // unimplemented
 }
 
-func LoadConfig(filename string) (Config, error) {
-	defaultConfig := Config{RespectRobots: false, MaxCrawlDepth: 99, MaxCrawlsPerSecond: 10}
+func LoadConfig(filename string) (ProgramConfig, error) {
+	defaultConfig := ProgramConfig{RespectRobots: false, MaxCrawlDepth: 99, MaxCrawlsPerSecond: 10}
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		return defaultConfig, fmt.Errorf("failed to load config file: %v", err)
 	}
 
-	var config Config
+	var config ProgramConfig
 	if err := json.Unmarshal(data, &config); err != nil {
 		return defaultConfig, fmt.Errorf("failed to parse JSON: %v", err)
 	}
@@ -57,19 +57,20 @@ func LoadSecrets(filename string) (*Secrets, error) {
 
 // - - -
 
-type SiteCrawlConfig struct {
+type CrawlConfig struct {
 	Root           string
 	FirstAdded     string
 	CrawlFrequency string
 	SheetName      string
 	SheetID        string
+	KeepOldCrawls  bool // Writes over LatestCrawl and makes a dated copy
 }
 
 func ImportSiteCrawlInfo() /*[]SiteCrawlConfig*/ {
 	// Import Site Crawl Configurations from dedicated Google Sheet (or appropriate source)
 }
 
-func (s SiteCrawlConfig) IsSiteDue() (bool, error) {
+func (s CrawlConfig) IsSiteDue() (bool, error) {
 	startDate, err := time.Parse("2006-01-02", s.FirstAdded)
 	if err != nil {
 		return false, fmt.Errorf("invalid date format: %v", err)
