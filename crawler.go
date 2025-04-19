@@ -41,11 +41,11 @@ type QueueEntry struct {
 }
 
 func fetchURLQuick(url string) (string, int, string, error) {
-	return fetchURL(url, Config{RespectRobots: false}, Robots{})
+	return fetchURL(url, ProgramConfig{RespectRobots: false}, Robots{})
 }
 
 // Send HTTP request to URL, returning HTML, response code, and any errors
-func fetchURL(url string, config Config, robots Robots) (string, int, string, error) {
+func fetchURL(url string, config ProgramConfig, robots Robots) (string, int, string, error) {
 	if config.RespectRobots && robots.CrawlDelay > 0 {
 		time.Sleep(time.Duration(robots.CrawlDelay) * time.Second)
 	}
@@ -203,7 +203,7 @@ func normaliseWWW(url, preferredRoot string) string {
 	return url
 }
 
-func Crawl(root string, config Config, robots Robots) (URLObjectList, error) {
+func Crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, error) {
 
 	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
@@ -308,7 +308,7 @@ func Crawl(root string, config Config, robots Robots) (URLObjectList, error) {
 }
 
 // Crawl all URLs on a site
-func GoWild(root string, config Config) (URLObjectList, error) {
+func GoWild(root string, config ProgramConfig) (URLObjectList, error) {
 	start := time.Now()
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
