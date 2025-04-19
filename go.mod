@@ -1,4 +1,4 @@
-module WildFawn
+module github.com/felixreverett/wildfawn
 
 go 1.23.4
 
