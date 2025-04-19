@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
+
+	"github.com/felixreverett/wildfawn/fawnbot"
 )
 
 func main() {
@@ -15,7 +17,7 @@ func main() {
 	url := string(data)
 
 	// b. Load Config
-	config, err := LoadConfig("programConfig.json")
+	config, err := fawnbot.LoadConfig("programConfig.json")
 	if err != nil {
 		fmt.Println("[!] Error loading config. Using default: ", err)
 	} else {
@@ -23,12 +25,12 @@ func main() {
 	}
 
 	// 2. Crawl
-	URLObjectList, err := GoWild(url, config)
+	URLObjectList, err := fawnbot.GoWild(url, config)
 	if err != nil {
 		fmt.Println("[!] Error crawling root URL. Aborting crawl. Error: ", err)
 		return
 	}
 
 	// 3. Export
-	WriteWild(URLObjectList)
+	fawnbot.WriteWild(URLObjectList)
 }
