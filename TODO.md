@@ -50,7 +50,7 @@
 
 ## export.go:
 - ✅ Write crawl to existing sheet in Google Sheets
-- ⬜️ Write crawl to new sheet
+- ✅ Write crawl to new sheet
 - ⬜️ Write overview to existing sheet
 - ⬜️ Write overview to new sheet
-- ⬜️ Enable 'write copy' to write to both "latest" and "dated" sheets (based on config)
+- ✅ Enable 'keepOldCrawls' to write to both "latest" and "dated" sheets (based on crawl config)
