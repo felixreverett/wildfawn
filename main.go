@@ -15,7 +15,7 @@ func main() {
 	url := string(data)
 
 	// b. Load Config
-	config, err := LoadConfig("config.json")
+	config, err := LoadConfig("programConfig.json")
 	if err != nil {
 		fmt.Println("[!] Error loading config. Using default: ", err)
 	} else {
