@@ -45,7 +45,9 @@
 - ✅ Add respect crawl delay
 
 ## import.go:
-- ✅ Implement config
+- ✅ Implement crawl config (JSON)
+- ✅ Implement program config (JSON)
+- ✅ Import crawl and program configs (JSON)
 - ⬜️ Import from Google Sheet
 
 ## export.go:
