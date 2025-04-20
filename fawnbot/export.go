@@ -19,7 +19,7 @@ import (
 )
 
 func startNewSheetsService() (*sheets.Service, error) {
-	credentials, err := os.ReadFile("service_account.json")
+	credentials, err := os.ReadFile("configs/service_account.json")
 	if err != nil {
 		return nil, fmt.Errorf("failed to read credentials: %v", err)
 	}
@@ -128,18 +128,8 @@ func WriteToSheet(service *sheets.Service, sheetID string, sheetName string, URL
 	return nil
 }
 
-func WriteWild(URLObjectList URLObjectList) {
+func WriteWild(URLObjectList URLObjectList, crawlConfig CrawlConfig) {
 	var err error
-
-	// To be replaced with crawl config information
-	keepOldCrawls := true
-
-	// Load secrets (to be replaced with crawl config information)
-	secrets, err := LoadSecrets("secrets.json")
-	if err != nil {
-		fmt.Println("[!] Error loading secrets:", err)
-		return
-	}
 
 	// Establish new service
 	service, err := startNewSheetsService()
@@ -151,27 +141,27 @@ func WriteWild(URLObjectList URLObjectList) {
 	// todo
 
 	// Write crawl
-	_, err = CreateNewSheet(service, secrets.SheetID, secrets.SheetName)
+	_, err = CreateNewSheet(service, crawlConfig.SheetID, crawlConfig.SheetName)
 	if err != nil {
 		fmt.Println("[!] Error creating new sheet:", err)
 	}
 
-	if err := WriteToSheet(service, secrets.SheetID, secrets.SheetName, URLObjectList); err != nil {
+	if err := WriteToSheet(service, crawlConfig.SheetID, crawlConfig.SheetName, URLObjectList); err != nil {
 		fmt.Println("[!] Error writing to sheet:", err)
 	}
 
 	// Export copy of crawl
-	if keepOldCrawls {
+	if crawlConfig.KeepOldCrawls {
 		// Create timestamped sheetname
 		timestamp := time.Now().Format("2006-01-02")
 		newSheetName := fmt.Sprintf("Crawl %s", timestamp)
 
-		_, err = CreateNewSheet(service, secrets.SheetID, newSheetName)
+		_, err = CreateNewSheet(service, crawlConfig.SheetID, newSheetName)
 		if err != nil {
 			fmt.Println("[!] Error creating new sheet:", err)
 		}
 
-		if err := WriteToSheet(service, secrets.SheetID, newSheetName, URLObjectList); err != nil {
+		if err := WriteToSheet(service, crawlConfig.SheetID, newSheetName, URLObjectList); err != nil {
 			fmt.Println("[!] Error writing to sheet:", err)
 		}
 	}
