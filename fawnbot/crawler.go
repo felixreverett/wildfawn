@@ -308,8 +308,9 @@ func Crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 }
 
 // Crawl all URLs on a site
-func GoWild(root string, config ProgramConfig) (URLObjectList, error) {
+func GoWild(crawlConfig CrawlConfig, config ProgramConfig) (URLObjectList, error) {
 	start := time.Now()
+	root := crawlConfig.Root
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
 	// 1. detect and set preference for www or non www
