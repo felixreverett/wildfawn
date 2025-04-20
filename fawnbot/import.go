@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -58,20 +59,51 @@ func LoadSecrets(filename string) (*Secrets, error) {
 // - - -
 
 type CrawlConfig struct {
-	Root           string
-	FirstAdded     string
-	CrawlFrequency string
-	SheetName      string
-	SheetID        string
-	KeepOldCrawls  bool // Writes over LatestCrawl and makes a dated copy
+	Root           string `json:"Root"`
+	CrawlStart     string `json:"CrawlStart"`
+	CrawlFrequency string `json:"CrawlFrequency"`
+	SheetName      string `json:"SheetName"`
+	SheetID        string `json:"SheetID"`
+	KeepOldCrawls  bool   `json:"KeepOldCrawls"` // Writes over LatestCrawl and makes a dated copy
 }
 
-func ImportSiteCrawlInfo() /*[]SiteCrawlConfig*/ {
-	// Import Site Crawl Configurations from dedicated Google Sheet (or appropriate source)
+func loadCrawlConfig(filepath string) (CrawlConfig, error) {
+	data, err := os.ReadFile(filepath)
+	if err != nil {
+		return CrawlConfig{}, fmt.Errorf("failed to load file: %v", err)
+	}
+
+	var crawlConfig CrawlConfig
+	if err := json.Unmarshal(data, &crawlConfig); err != nil {
+		return CrawlConfig{}, fmt.Errorf("failed to parse JSON: %v", err)
+	}
+
+	return crawlConfig, nil
+}
+
+func LoadCrawlConfigs() ([]CrawlConfig, error) {
+	var crawlConfigs []CrawlConfig
+
+	matches, err := filepath.Glob("configs/*CrawlConfig.json")
+	if err != nil {
+		return nil, fmt.Errorf("error reading configs in directory %w", err)
+	}
+
+	for _, filepath := range matches {
+		cfg, err := loadCrawlConfig(filepath)
+		if err != nil {
+			fmt.Printf("[!] Error loading %s: %v\n", filepath, err)
+			continue
+		}
+
+		crawlConfigs = append(crawlConfigs, cfg)
+	}
+
+	return crawlConfigs, nil
 }
 
 func (s CrawlConfig) IsSiteDue() (bool, error) {
-	startDate, err := time.Parse("2006-01-02", s.FirstAdded)
+	startDate, err := time.Parse("2006-01-02", s.CrawlStart)
 	if err != nil {
 		return false, fmt.Errorf("invalid date format: %v", err)
 	}
