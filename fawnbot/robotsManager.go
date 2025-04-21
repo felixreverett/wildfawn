@@ -24,7 +24,7 @@ type UserAgent struct {
 	Allow    []string
 }
 
-func ParseRobots(robotsFile string) Robots {
+func parseRobots(robotsFile string) Robots {
 	var robots Robots
 	var currentAgent *UserAgent
 
@@ -75,7 +75,7 @@ func ParseRobots(robotsFile string) Robots {
 	return robots
 }
 
-func ExtractRootURL(inputURL string) (string, error) {
+func extractRootURL(inputURL string) (string, error) {
 	parsed, err := url.Parse(inputURL)
 	if err != nil {
 		return "", err
@@ -83,8 +83,8 @@ func ExtractRootURL(inputURL string) (string, error) {
 	return fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host), nil
 }
 
-func GetRobots(url string) (Robots, error) {
-	pruned, err := ExtractRootURL(url)
+func getRobots(url string) (Robots, error) {
+	pruned, err := extractRootURL(url)
 	if err != nil {
 		return Robots{}, err
 	}
@@ -94,14 +94,14 @@ func GetRobots(url string) (Robots, error) {
 
 	if status == 200 {
 		fmt.Printf("(i) Found robots file at %s\n", robotsURL)
-		return ParseRobots(robotsFile), nil
+		return parseRobots(robotsFile), nil
 	} else {
 		fmt.Printf("[!] Could not find robots file at %s\n", robotsURL)
 		return Robots{}, err
 	}
 }
 
-func IsURLBlockedByRobots(url string, robots Robots) bool {
+func isURLBlockedByRobots(url string, robots Robots) bool {
 	url = strings.ToLower(url)
 
 	for _, agent := range robots.Agents {

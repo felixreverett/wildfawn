@@ -6,7 +6,7 @@ package fawnbot
 */
 
 // receiver function to fill in remaining data at end of crawl
-func (u URLObjectList) RunPostCrawl() {
+func (u URLObjectList) runPostCrawl() {
 
 	for url, obj := range u.URLObjects {
 		if obj.Inlinks == 0 {

@@ -20,7 +20,7 @@ type ProgramConfig struct {
 	MaxCrawlsPerSecond int  `json:"MaxCrawlsPerSecond"` // unimplemented
 }
 
-func LoadConfig(filename string) (ProgramConfig, error) {
+func LoadProgramConfig(filename string) (ProgramConfig, error) {
 	defaultConfig := ProgramConfig{RespectRobots: false, MaxCrawlDepth: 99, MaxCrawlsPerSecond: 10}
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -102,7 +102,7 @@ func LoadCrawlConfigs() ([]CrawlConfig, error) {
 	return crawlConfigs, nil
 }
 
-func (s CrawlConfig) IsSiteDue() (bool, error) {
+func (s CrawlConfig) isSiteDue() (bool, error) {
 	startDate, err := time.Parse("2006-01-02", s.CrawlStart)
 	if err != nil {
 		return false, fmt.Errorf("invalid date format: %v", err)

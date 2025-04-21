@@ -164,7 +164,7 @@ func extractLinks(htmlString string) []string {
 }
 
 // returns a URL's preferred www. config by checking for redirects
-func SetWWWPreference(root string) (string, error) {
+func setWWWPreference(root string) (string, error) {
 	_, status, redirectTo, err := fetchURLQuick(root)
 	if err != nil {
 		return root, err
@@ -203,7 +203,7 @@ func normaliseWWW(url, preferredRoot string) string {
 	return url
 }
 
-func Crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, error) {
+func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, error) {
 
 	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
@@ -232,7 +232,7 @@ func Crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 		depth := URLQueue[0].crawlDepth
 		URLQueue = URLQueue[1:]
 
-		isBlockedByRobots := IsURLBlockedByRobots(url, robots)
+		isBlockedByRobots := isURLBlockedByRobots(url, robots)
 
 		// b. fetch (if allowed)
 		if !config.RespectRobots || !isBlockedByRobots {
@@ -314,7 +314,7 @@ func GoWild(crawlConfig CrawlConfig, config ProgramConfig) (URLObjectList, error
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
 
 	// 1. detect and set preference for www or non www
-	root, err := SetWWWPreference(root)
+	root, err := setWWWPreference(root)
 	if err != nil {
 		fmt.Println("[!] Error detecting www preference:", err)
 		return URLObjectList{}, err
@@ -322,22 +322,22 @@ func GoWild(crawlConfig CrawlConfig, config ProgramConfig) (URLObjectList, error
 	fmt.Println("(i) Normalising all URLs to:", root) //debug
 
 	// 2. Get robots
-	robots, err := GetRobots(root)
+	robots, err := getRobots(root)
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		PrintSiteMap(robots)
+		printSiteMap(robots)
 	}
 
 	// 2. Crawl site
-	objectList, err := Crawl(root, config, robots)
+	objectList, err := crawl(root, config, robots)
 	if err != nil {
 		fmt.Println("[!] Failed to crawl root: ", err)
 		return URLObjectList{}, err
 	}
 
 	// 3. Calculate post-crawl metrics for each URLObject
-	objectList.RunPostCrawl()
+	objectList.runPostCrawl()
 
 	// 4. Return (and print) results
 	/*

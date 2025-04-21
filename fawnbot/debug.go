@@ -2,7 +2,7 @@ package fawnbot
 
 import "fmt"
 
-func GoTame() {
+func goTame() {
 	// substitutes a crawl (so I don't recrawl every time)
 	/*URLObjects := make(map[string]*URLObject)
 	URLObjects["https://example.com/page1"] = &URLObject{Inlinks: 5, Outlinks: 3, PageStatus: 200, CrawlDepth: 2}
@@ -24,7 +24,7 @@ func GoTame() {
 	}*/
 }
 
-func PrintSiteMap(robots Robots) {
+func printSiteMap(robots Robots) {
 	fmt.Println("(i) Debug - logging robots file:")
 	fmt.Println(">   Agents:")
 	for _, agent := range robots.Agents {

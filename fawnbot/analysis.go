@@ -20,7 +20,7 @@ type CrawlAnalysis struct {
 	TotalOrphans               int
 }
 
-func AnalyseCrawl(URLObjects map[string]*URLObject) CrawlAnalysis {
+func analyseCrawl(URLObjects map[string]*URLObject) CrawlAnalysis {
 	var analysis CrawlAnalysis
 
 	for _, URLObject := range URLObjects {
