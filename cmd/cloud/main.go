@@ -10,13 +10,13 @@ func main() {
 	// a. Load crawl configs
 	crawlConfigs, err := fawnbot.LoadCrawlConfigs()
 	if err != nil {
-		fmt.Println("[!] Error loading crawl configs: %v", err)
+		fmt.Println("[!] Error loading crawl configs:", err)
 	}
 
 	// b. Load program config
-	programConfig, err := fawnbot.LoadConfig("programConfig.json")
+	programConfig, err := fawnbot.LoadProgramConfig("programConfig.json")
 	if err != nil {
-		fmt.Println("[!] Error loading program config. Using default: ", err)
+		fmt.Println("[!] Error loading program config. Using default:", err)
 	} else {
 		fmt.Println("(i) Successfully loaded program config")
 	}
