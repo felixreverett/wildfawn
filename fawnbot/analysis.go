@@ -20,12 +20,12 @@ type CrawlAnalysis struct {
 	TotalOrphans               int
 }
 
-func analyseCrawl(URLObjects map[string]*URLObject) CrawlAnalysis {
+func AnalyseCrawl(objectList URLObjectList) CrawlAnalysis {
 	var analysis CrawlAnalysis
 
-	for _, URLObject := range URLObjects {
+	for _, URLObject := range objectList.URLObjects {
 		// 1. Core data
-		analysis.TotalInternalURLs = len(URLObjects)
+		analysis.TotalInternalURLs = len(objectList.URLObjects)
 
 		// 2. Status
 		if URLObject.PageStatus >= 500 {
