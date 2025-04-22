@@ -28,6 +28,8 @@ func main() {
 			fmt.Println("[!] Error crawling root URL, aborting:", err)
 			continue
 		}
-		fawnbot.WriteWild(URLObjectList, crawlConfig)
+		analysis := fawnbot.AnalyseCrawl(URLObjectList)
+
+		fawnbot.WriteWild(URLObjectList, analysis, crawlConfig)
 	}
 }
