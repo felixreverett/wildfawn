@@ -128,7 +128,7 @@ func writeToSheet(service *sheets.Service, sheetID string, sheetName string, URL
 	return nil
 }
 
-func WriteWild(URLObjectList URLObjectList, crawlConfig CrawlConfig) {
+func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig CrawlConfig) {
 	var err error
 
 	// Establish new service
