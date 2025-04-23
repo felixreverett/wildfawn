@@ -1,6 +1,6 @@
 # 🦌 wildfawn SEO Crawler "fawnbot"
 
-A small project to develop a propietary lightweight web crawler to monitor technical hygiene metrics of any given site, without the costly drawbacks of larger software solutions. As a bonus, it's a great opportunity to further my knowledge of Go, too!
+A small project to develop a proprietary lightweight web crawler to monitor technical hygiene metrics of any given site, without the costly drawbacks of larger software solutions. As a bonus, it's a great opportunity to further my knowledge of Go, too!
 
 ## Commit messages
 - ✨ New feature
