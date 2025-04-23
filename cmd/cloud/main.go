@@ -8,7 +8,7 @@ import (
 
 func main() {
 	// a. Load program config
-	programConfig, err := fawnbot.LoadProgramConfig("programConfig.json")
+	programConfig, err := fawnbot.LoadProgramConfig("configs/programConfig.json")
 	if err != nil {
 		fmt.Println("[!] Error loading program config. Using default:", err)
 	} else {
