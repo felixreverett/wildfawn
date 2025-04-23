@@ -1,4 +1,5 @@
 # User-specific files
+programConfig.json
 service_account.json
 secrets.json
 *crawlconfig.json
