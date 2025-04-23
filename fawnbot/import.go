@@ -11,13 +11,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
 type ProgramConfig struct {
-	RespectRobots      bool `json:"RespectRobots"`      // unimplemented
-	MaxCrawlDepth      int  `json:"MaxCrawlDepth"`      // unimplemented
-	MaxCrawlsPerSecond int  `json:"MaxCrawlsPerSecond"` // unimplemented
+	RespectRobots      bool   `json:"RespectRobots"`
+	MaxCrawlDepth      int    `json:"MaxCrawlDepth"`      // unimplemented
+	MaxCrawlsPerSecond int    `json:"MaxCrawlsPerSecond"` // unimplemented
+	ReadSheetID        string `json:"ReadSheetID"`
+	ReadSheetName      string `json:"ReadSheetName"`
 }
 
 func LoadProgramConfig(filename string) (ProgramConfig, error) {
@@ -76,6 +79,47 @@ func LoadCrawlConfigs() ([]CrawlConfig, error) {
 		}
 
 		crawlConfigs = append(crawlConfigs, cfg)
+	}
+
+	return crawlConfigs, nil
+}
+
+// Note: this read is highly-dependent on the configuration of the read sheet. If values or column order changes, the program will not return any configs.
+func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error) {
+	service, err := startNewSheetsService()
+	if err != nil {
+		return []CrawlConfig{}, fmt.Errorf("failed to start new Sheets service: %v", err)
+	}
+
+	readRange := sheetName + "!A2:F" // skip header, cols A-G
+	response, err := service.Spreadsheets.Values.Get(sheetID, readRange).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	var crawlConfigs []CrawlConfig
+	for _, row := range response.Values {
+		if len(row) < 6 {
+			continue //ignore incomplete rows
+		}
+
+		keepOldCrawls := false
+		if val, ok := row[5].(string); ok && strings.ToLower(val) == "true" {
+			keepOldCrawls = true
+		}
+
+		config := CrawlConfig{
+			Root:           row[0].(string),
+			CrawlStart:     row[1].(string),
+			CrawlFrequency: row[2].(string),
+			SheetName:      row[3].(string),
+			SheetID:        row[4].(string),
+			KeepOldCrawls:  keepOldCrawls,
+		}
+
+		fmt.Println(config) //debug
+
+		crawlConfigs = append(crawlConfigs, config)
 	}
 
 	return crawlConfigs, nil
