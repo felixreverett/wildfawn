@@ -1,7 +1,7 @@
 # 🦌 Wild Fawn todo:
 
 ## main.go:
-- ⬜️ Oversee full import, crawl, and export
+- ✅ Oversee full import, crawl, and export
 - ⬜️ Add gocurrency
 
 ### data collection:
@@ -39,6 +39,7 @@
 - ✅ Read robots.txt
   - ✅ Add option to respect robots.txt
   - ⬜️ check sitemaps
+- ✅ Crawl scheduling
 
 ## crawler.go:
 - ✅ Add respect disallows
@@ -48,7 +49,7 @@
 - ✅ Implement crawl config (JSON)
 - ✅ Implement program config (JSON)
 - ✅ Import crawl and program configs (JSON)
-- ⬜️ Import from Google Sheet
+- ✅ Import from Google Sheet
 
 ## export.go:
 - ✅ Write crawl to existing sheet in Google Sheets
