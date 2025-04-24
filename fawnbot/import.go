@@ -91,7 +91,7 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 		return []CrawlConfig{}, fmt.Errorf("failed to start new Sheets service: %v", err)
 	}
 
-	readRange := sheetName + "!A2:F" // skip header, cols A-G
+	readRange := sheetName + "!A2:F" // skip header, cols A-F
 	response, err := service.Spreadsheets.Values.Get(sheetID, readRange).Do()
 	if err != nil {
 		return nil, err
@@ -117,36 +117,38 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 			KeepOldCrawls:  keepOldCrawls,
 		}
 
-		fmt.Println(config) //debug
-
 		crawlConfigs = append(crawlConfigs, config)
 	}
 
 	return crawlConfigs, nil
 }
 
-func (s CrawlConfig) isSiteDue() (bool, error) {
+func IsSiteDue(s CrawlConfig) (bool, error) {
 	startDate, err := time.Parse("2006-01-02", s.CrawlStart)
 	if err != nil {
 		return false, fmt.Errorf("invalid date format: %v", err)
 	}
 
-	var duration time.Duration
+	today := time.Now().Truncate(24 * time.Hour)
+	startDate = startDate.Truncate(24 * time.Hour)
+	daysPassed := int(today.Sub(startDate).Hours() / 24)
 
-	switch s.CrawlFrequency {
+	var interval int
+
+	switch strings.ToLower(s.CrawlFrequency) {
 	case "daily":
-		duration = 24 * time.Hour
+		interval = 1
 	case "weekly":
-		duration = 7 * 24 * time.Hour
+		interval = 7
 	case "fortnightly":
-		duration = 14 * 24 * time.Hour
+		interval = 14
 	case "monthly":
-		duration = 28 * 24 * time.Hour
+		interval = 28
 	default:
 		return false, fmt.Errorf("invalid crawl frequency: '%s'. Expected one of: daily, weekly, fortnightly, monthly", s.CrawlFrequency)
 	}
 
-	targetDate := startDate.Add(duration)
+	//fmt.Printf("Root: %s, Start: %s, Days Passed: %d\n", s.Root, startDate.Format("2006-01-02"), daysPassed)
 
-	return time.Now().After(targetDate), nil
+	return daysPassed >= 0 && daysPassed%interval == 0, nil
 }

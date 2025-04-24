@@ -24,13 +24,26 @@ func main() {
 
 	// c. Crawl and export all
 	for _, crawlConfig := range crawlConfigs {
-		URLObjectList, err := fawnbot.GoWild(crawlConfig, programConfig)
+
+		ok, err := fawnbot.IsSiteDue(crawlConfig)
 		if err != nil {
-			fmt.Println("[!] Error crawling root URL, aborting:", err)
+			fmt.Println("[!] Error determining if site is due:", err)
 			continue
 		}
-		analysis := fawnbot.AnalyseCrawl(URLObjectList)
 
-		fawnbot.WriteWild(URLObjectList, analysis, crawlConfig)
+		if ok {
+			fmt.Printf("(i) Site %s is due. Crawling\n", crawlConfig.Root)
+			URLObjectList, err := fawnbot.GoWild(crawlConfig, programConfig)
+			if err != nil {
+				fmt.Println("[!] Error crawling root URL, aborting:", err)
+				continue
+			}
+			analysis := fawnbot.AnalyseCrawl(URLObjectList)
+
+			fawnbot.WriteWild(URLObjectList, analysis, crawlConfig)
+		} else {
+			fmt.Printf("(i) Site %s is not due\n", crawlConfig.Root)
+		}
+
 	}
 }
