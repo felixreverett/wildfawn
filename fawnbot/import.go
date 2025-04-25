@@ -113,7 +113,7 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 			CrawlStart:     row[1].(string),
 			CrawlFrequency: row[2].(string),
 			SheetName:      row[3].(string),
-			SheetID:        row[4].(string),
+			SheetID:        extractSheetIDFromURL(row[4].(string)),
 			KeepOldCrawls:  keepOldCrawls,
 		}
 
@@ -151,4 +151,16 @@ func IsSiteDue(s CrawlConfig) (bool, error) {
 	//fmt.Printf("Root: %s, Start: %s, Days Passed: %d\n", s.Root, startDate.Format("2006-01-02"), daysPassed)
 
 	return daysPassed >= 0 && daysPassed%interval == 0, nil
+}
+
+func extractSheetIDFromURL(url string) string {
+	if strings.Contains(url, "docs.google.com") {
+		parts := strings.Split(url, "/")
+		for i := 0; i < len(parts); i++ {
+			if parts[i] == "d" && i+1 < len(parts) {
+				return parts[i+1]
+			}
+		}
+	}
+	return url
 }
