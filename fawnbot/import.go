@@ -41,12 +41,13 @@ func LoadProgramConfig(filename string) (ProgramConfig, error) {
 // - - -
 
 type CrawlConfig struct {
-	Root           string `json:"Root"`
-	CrawlStart     string `json:"CrawlStart"`
-	CrawlFrequency string `json:"CrawlFrequency"`
-	SheetName      string `json:"SheetName"`
-	SheetID        string `json:"SheetID"`
-	KeepOldCrawls  bool   `json:"KeepOldCrawls"` // Writes over LatestCrawl and makes a dated copy
+	Root              string `json:"Root"`
+	CrawlStart        string `json:"CrawlStart"`
+	CrawlFrequency    string `json:"CrawlFrequency"`
+	SheetName         string `json:"SheetName"`
+	AnalysisSheetName string `json:"AnalysisSheetName"`
+	SheetID           string `json:"SheetID"`
+	KeepOldCrawls     bool   `json:"KeepOldCrawls"` // Writes over LatestCrawl and makes a dated copy
 }
 
 func loadCrawlConfig(filepath string) (CrawlConfig, error) {
@@ -109,12 +110,13 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 		}
 
 		config := CrawlConfig{
-			Root:           row[0].(string),
-			CrawlStart:     row[1].(string),
-			CrawlFrequency: row[2].(string),
-			SheetName:      row[3].(string),
-			SheetID:        extractSheetIDFromURL(row[4].(string)),
-			KeepOldCrawls:  keepOldCrawls,
+			Root:              row[0].(string),
+			CrawlStart:        row[1].(string),
+			CrawlFrequency:    row[2].(string),
+			SheetName:         row[3].(string),
+			AnalysisSheetName: row[4].(string),
+			SheetID:           extractSheetIDFromURL(row[5].(string)),
+			KeepOldCrawls:     keepOldCrawls,
 		}
 
 		crawlConfigs = append(crawlConfigs, config)
