@@ -92,7 +92,7 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 		return []CrawlConfig{}, fmt.Errorf("failed to start new Sheets service: %v", err)
 	}
 
-	readRange := sheetName + "!A2:F" // skip header, cols A-F
+	readRange := sheetName + "!A2:G" // skip header, cols A-F
 	response, err := service.Spreadsheets.Values.Get(sheetID, readRange).Do()
 	if err != nil {
 		return nil, err
@@ -100,12 +100,12 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error
 
 	var crawlConfigs []CrawlConfig
 	for _, row := range response.Values {
-		if len(row) < 6 {
+		if len(row) < 7 {
 			continue //ignore incomplete rows
 		}
 
 		keepOldCrawls := false
-		if val, ok := row[5].(string); ok && strings.ToLower(val) == "true" {
+		if val, ok := row[6].(string); ok && strings.ToLower(val) == "true" {
 			keepOldCrawls = true
 		}
 
