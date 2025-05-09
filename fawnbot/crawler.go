@@ -175,7 +175,7 @@ func setWWWPreference(root string) (string, error) {
 		redirectHost := extractHost(redirectTo)
 
 		if rootHost != redirectHost {
-			fmt.Printf("Detected www preference: %s -> %s\n", root, redirectTo)
+			fmt.Printf("(i) Detected www preference: %s -> %s\n", root, redirectTo)
 			return redirectTo, nil
 		}
 	}

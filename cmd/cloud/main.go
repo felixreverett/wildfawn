@@ -8,6 +8,7 @@ import (
 
 func main() {
 	// a. Load program config
+	fmt.Println("= = = Initialising Wildfawn Cloud = = =")
 	programConfig, err := fawnbot.LoadProgramConfig("configs/programConfig.json")
 	if err != nil {
 		fmt.Println("[!] Error loading program config. Using default:", err)
