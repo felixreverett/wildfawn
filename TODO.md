@@ -50,6 +50,8 @@
 - ✅ Implement program config (JSON)
 - ✅ Import crawl and program configs (JSON)
 - ✅ Import from Google Sheet
+- ✅ Calculate if site is due based on daily/weekly/fortnightly startdate
+- ✅ Calculate if site is due based on monthly startdate
 
 ## export.go:
 - ✅ Write crawl to existing sheet in Google Sheets
