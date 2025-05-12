@@ -133,26 +133,21 @@ func IsSiteDue(s CrawlConfig) (bool, error) {
 
 	today := time.Now().Truncate(24 * time.Hour)
 	startDate = startDate.Truncate(24 * time.Hour)
-	daysPassed := int(today.Sub(startDate).Hours() / 24)
-
-	var interval int
 
 	switch strings.ToLower(s.CrawlFrequency) {
 	case "daily":
-		interval = 1
+		return true, nil
 	case "weekly":
-		interval = 7
+		daysPassed := int(today.Sub(startDate).Hours() / 24)
+		return daysPassed >= 0 && daysPassed%7 == 0, nil
 	case "fortnightly":
-		interval = 14
+		daysPassed := int(today.Sub(startDate).Hours() / 24)
+		return daysPassed >= 0 && daysPassed%14 == 0, nil
 	case "monthly":
-		interval = 28
+		return startDate.Day() == today.Day(), nil
 	default:
 		return false, fmt.Errorf("invalid crawl frequency: '%s'. Expected one of: daily, weekly, fortnightly, monthly", s.CrawlFrequency)
 	}
-
-	//fmt.Printf("Root: %s, Start: %s, Days Passed: %d\n", s.Root, startDate.Format("2006-01-02"), daysPassed)
-
-	return daysPassed >= 0 && daysPassed%interval == 0, nil
 }
 
 func extractSheetIDFromURL(url string) string {
