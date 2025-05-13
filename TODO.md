@@ -19,17 +19,28 @@
   - ✅ Is Self Canonicalising bool
   - ⬜️ IsAllopatric bool (separated cluster)
   - ✅ BlockedByRobots bool
-  - ⬜️ PageTitle
-  - ⬜️ MetaDescription
-  - ⬜️ H1*
+  - ✅ PageTitle
+  - ✅ PageTitleLength
+  - ✅ MetaDescription
+  - ✅ MetaDescriptionLength
+  - ✅ H1
+  - ✅ H1Length
 - Post Parse metrics:
   - ⬜️ Canonical Indexability*
 - Analysis metrics:
-  - ✅ total URLs
-  - ✅ total internal 200's
-  - ✅ total internal 3xx's (and chains)
-  - ✅ total internal 4xx's
-  - ✅ total internal 5xx's
+  - General:
+    - ✅ total URLs
+    - ✅ total internal 200's
+    - ✅ total internal 3xx's (and chains)
+    - ✅ total internal 4xx's
+    - ✅ total internal 5xx's
+    - Meta:
+      - ⬜️ total missing page titles
+      - ⬜️ total missing meta descriptions
+      - ⬜️ total missing h1s
+      - ⬜️ total multiple page titles
+      - ⬜️ total multiple meta descriptions
+      - ⬜️ total multiple h1s
   - ⬜️ Pages with high crawl depth
   - ⬜️ non-indexable URLs in sitemap
 
