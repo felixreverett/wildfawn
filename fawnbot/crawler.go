@@ -23,11 +23,13 @@ type URLObject struct {
 	NoIndex               bool   // collected
 	Indexability          bool   // collected
 	Canonical             string // collected
-	MetaTitle             string
-	MetaTitleLength       int
-	MetaDescription       string
-	MetaDescriptionLength int
-	IsBlockedByRobots     bool // collected
+	MetaTitle             string // collected
+	MetaTitleLength       int    // collected
+	MetaDescription       string // collected
+	MetaDescriptionLength int    // collected
+	H1                    string // collected
+	H1Length              int    // collected
+	IsBlockedByRobots     bool   // collected
 	// postcrawl metrics
 	IsOrphan             bool // collected
 	IsOnSitemap          bool
@@ -83,50 +85,65 @@ func fetchURL(url string, config ProgramConfig, robots Robots) (string, int, str
 	return string(body), response.StatusCode, redirectTo, nil
 }
 
-func parseHTML(htmlString string) (bool, bool, string) {
-	doc, err := html.Parse(strings.NewReader(htmlString))
-	if err != nil {
-		return true, false, ""
-	}
-
+func parseHTML(htmlString string) (bool, bool, string, string, string, string) {
 	indexable := true
 	noIndex := false
 	canonical := ""
+	metaDescription := ""
+	metaTitle := ""
+	h1 := ""
+
+	doc, err := html.Parse(strings.NewReader(htmlString))
+	if err != nil {
+		return indexable, noIndex, canonical, metaDescription, metaTitle, h1
+	}
 
 	// 2. recursive function to parse html
 	var traverseHTML func(*html.Node)
 	traverseHTML = func(n *html.Node) {
 		if n.Type == html.ElementNode {
-			// a. check for <meta name="robots" content="noindex">
-			if n.Data == "meta" {
+			switch n.Data {
+			case "meta":
 				var name, content string
 				for _, attr := range n.Attr {
-					if attr.Key == "name" && strings.ToLower(attr.Val) == "robots" {
-						name = attr.Val
-					}
-					if attr.Key == "content" {
+					switch strings.ToLower(attr.Key) {
+					case "name":
+						name = strings.ToLower(attr.Val)
+					case "content":
 						content = attr.Val
 					}
 				}
+
 				if name == "robots" && strings.Contains(strings.ToLower(content), "noindex") {
 					indexable = false
 					noIndex = true
 				}
-			}
+				if name == "description" {
+					metaDescription = content
+				}
 
-			// b. check for canonical
-			if n.Data == "link" {
+			case "link":
 				var rel, href string
 				for _, attr := range n.Attr {
-					if attr.Key == "rel" && attr.Val == "canonical" {
-						rel = attr.Val
-					}
-					if attr.Key == "href" {
+					switch strings.ToLower(attr.Key) {
+					case "rel":
+						rel = strings.ToLower(attr.Val)
+					case "href":
 						href = attr.Val
 					}
 				}
 				if rel == "canonical" && href != "" {
 					canonical = href
+				}
+
+			case "title":
+				if metaTitle == "" && n.FirstChild != nil {
+					metaTitle = n.FirstChild.Data
+				}
+
+			case "h1":
+				if h1 == "" && n.FirstChild != nil {
+					h1 = n.FirstChild.Data
 				}
 			}
 		}
@@ -137,7 +154,7 @@ func parseHTML(htmlString string) (bool, bool, string) {
 	}
 
 	traverseHTML(doc)
-	return indexable, noIndex, canonical
+	return indexable, noIndex, canonical, metaDescription, metaTitle, h1
 }
 
 // returns a list of hrefs from an html string
@@ -243,8 +260,13 @@ func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 			}
 
 			indexable := false
-			noIndex := false
 			canonical := ""
+			// meta
+			noIndex := false
+			metaDescription := ""
+			metaTitle := ""
+			// other html elements
+			h1 := ""
 
 			// c. check for redirect status
 			if status >= 300 && status < 400 {
@@ -254,7 +276,7 @@ func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 					//fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
 				}
 			} else if status == 200 {
-				indexable, noIndex, canonical = parseHTML(html)
+				indexable, noIndex, canonical, metaDescription, metaTitle, h1 = parseHTML(html)
 			}
 
 			// d. collect every link on current URL
@@ -262,7 +284,8 @@ func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 
 			// e. add current URL results to URLObject
 			URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
-				Indexability: indexable, NoIndex: noIndex, Canonical: canonical, IsBlockedByRobots: isBlockedByRobots}
+				Indexability: indexable, NoIndex: noIndex, Canonical: canonical, IsBlockedByRobots: isBlockedByRobots,
+				MetaTitle: metaTitle, MetaTitleLength: len(metaTitle), MetaDescription: metaDescription, MetaDescriptionLength: len(metaDescription), H1: h1, H1Length: len(h1)}
 
 			// f. iterate through all links of current URL
 			for _, link := range links {
