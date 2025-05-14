@@ -94,11 +94,17 @@ func writeCrawlToSheet(service *sheets.Service, sheetID string, sheetName string
 	// Convert URLObject to interface for Sheets
 	var values [][]interface{}
 	values = append(values, []interface{}{
-		"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth", "No Index", "Indexability", "Canonical", "Self-Canonicalises", "Is Canonical Indexable", "Is Orphan", "Blocked by Robots"}) //headers
+		"URL", "Inlinks", "Outlinks", "Page Status", "Crawl Depth",
+		"No Index", "Indexability", "Canonical", "Self-Canonicalises", "Is Canonical Indexable",
+		"Is Orphan", "Blocked by Robots",
+		"Meta Title", "Meta Title Length", "Meta Description", "Meta Description Length", "H1", "H1 Length"}) //headers
 
 	for url, obj := range data {
 		row := []interface{}{
-			url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth, obj.NoIndex, obj.Indexability, obj.Canonical, obj.IsSelfCanonicalising, obj.IsCanonicalIndexable, obj.IsOrphan, obj.IsBlockedByRobots}
+			url, obj.Inlinks, obj.Outlinks, obj.PageStatus, obj.CrawlDepth,
+			obj.NoIndex, obj.Indexability, obj.Canonical, obj.IsSelfCanonicalising, obj.IsCanonicalIndexable,
+			obj.IsOrphan, obj.IsBlockedByRobots,
+			obj.MetaTitle, obj.MetaTitleLength, obj.MetaDescription, obj.MetaDescriptionLength, obj.H1, obj.H1Length}
 		values = append(values, row)
 	}
 
