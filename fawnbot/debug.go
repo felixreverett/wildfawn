@@ -44,3 +44,7 @@ func printCrawlConfig(crawlConfig CrawlConfig) {
 	fmt.Printf("     Frequency: %s\n", crawlConfig.CrawlFrequency)
 	fmt.Printf("     KeepOldCrawls: %t\n", crawlConfig.KeepOldCrawls)
 }
+
+func VerifyModuleImport() {
+	fmt.Println("Successfully accessed function in wildfawn module")
+}
