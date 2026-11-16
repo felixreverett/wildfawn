@@ -220,7 +220,14 @@ func normaliseWWW(url, preferredRoot string) string {
 	return url
 }
 
-func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, error) {
+/*
+Crawls all URLs from a root
+*/
+func crawl(
+	root string,
+	config ProgramConfig,
+	robots Robots,
+	implConfig ImplementationConfig) (URLObjectList, error) {
 
 	// 1. prepare regex to only crawl same-site URLs
 	host := extractHost(root)
@@ -283,9 +290,16 @@ func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 			links := extractLinks(html)
 
 			// e. add current URL results to URLObject
-			URLObjects[url] = &URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
+			newURLObject := URLObject{Inlinks: 1, Outlinks: len(links), PageStatus: status, CrawlDepth: depth,
 				Indexability: indexable, NoIndex: noIndex, Canonical: canonical, IsBlockedByRobots: isBlockedByRobots,
 				MetaTitle: metaTitle, MetaTitleLength: len(metaTitle), MetaDescription: metaDescription, MetaDescriptionLength: len(metaDescription), H1: h1, H1Length: len(h1)}
+
+			URLObjects[url] = &newURLObject
+
+			// Pipe data back to caller if accessed via Tundra
+			if implConfig.OnProgress != nil {
+				implConfig.OnProgress(url, newURLObject)
+			}
 
 			// f. iterate through all links of current URL
 			for _, link := range links {
@@ -331,7 +345,11 @@ func crawl(root string, config ProgramConfig, robots Robots) (URLObjectList, err
 }
 
 // Crawl all URLs on a site
-func GoWild(crawlConfig CrawlConfig, config ProgramConfig) (URLObjectList, error) {
+func GoWild(
+	crawlConfig SiteCrawlConfig,
+	config ProgramConfig,
+	implConfig ImplementationConfig) (URLObjectList, error) {
+
 	start := time.Now()
 	root := crawlConfig.Root
 	fmt.Printf("= = = Starting new crawl of %s = = =\n", root)
@@ -353,7 +371,7 @@ func GoWild(crawlConfig CrawlConfig, config ProgramConfig) (URLObjectList, error
 	}
 
 	// 2. Crawl site
-	objectList, err := crawl(root, config, robots)
+	objectList, err := crawl(root, config, robots, implConfig)
 	if err != nil {
 		fmt.Println("[!] Failed to crawl root: ", err)
 		return URLObjectList{}, err

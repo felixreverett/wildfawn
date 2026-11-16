@@ -34,7 +34,7 @@ func main() {
 
 		if ok {
 			fmt.Printf("(i) Site %s is due. Crawling\n", crawlConfig.Root)
-			URLObjectList, err := fawnbot.GoWild(crawlConfig, programConfig)
+			URLObjectList, err := fawnbot.GoWild(crawlConfig, programConfig, fawnbot.ImplementationConfig{})
 			if err != nil {
 				fmt.Println("[!] Error crawling root URL, aborting:", err)
 				continue

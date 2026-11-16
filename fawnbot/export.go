@@ -134,7 +134,7 @@ func writeCrawlToSheet(service *sheets.Service, sheetID string, sheetName string
 	return nil
 }
 
-func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig CrawlConfig) error {
+func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig SiteCrawlConfig) error {
 	start := time.Now()
 	fmt.Println("(i) Writing Analysis...")
 
@@ -191,7 +191,7 @@ func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig 
 	return nil
 }
 
-func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig CrawlConfig) {
+func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig SiteCrawlConfig) {
 	var err error
 
 	// Establish new service

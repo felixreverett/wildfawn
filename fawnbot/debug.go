@@ -37,7 +37,7 @@ func printSiteMap(robots Robots) {
 	fmt.Printf(">   CrawlDelay: %d\n", robots.CrawlDelay)
 }
 
-func printCrawlConfig(crawlConfig CrawlConfig) {
+func printCrawlConfig(crawlConfig SiteCrawlConfig) {
 	fmt.Println("(i) Debug - logging crawl config")
 	fmt.Printf("     Root: %s\n", crawlConfig.Root)
 	fmt.Printf("     Start: %s\n", crawlConfig.CrawlStart)
