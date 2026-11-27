@@ -10,24 +10,34 @@ import (
 	"path/filepath"
 )
 
-/*
-Defines how the program executes a crawl instance. Can persist between crawls.
-*/
-type ProgramConfig struct {
-	RespectRobots      bool   `json:"RespectRobots"`
-	MaxCrawlDepth      int    `json:"MaxCrawlDepth"`      // unimplemented
-	MaxCrawlsPerSecond int    `json:"MaxCrawlsPerSecond"` // unimplemented
-	ReadSheetID        string `json:"ReadSheetID"`
-	ReadSheetName      string `json:"ReadSheetName"`
+type CrawlConfig struct {
+	Root      string     `json:"root"`
+	Core      *Core      `json:"core"`
+	Limits    *Limits    `json:"limits"`
+	PostCrawl *PostCrawl `json:"postCrawl"`
+	API       *API       `json:"api,omitempty"`
 }
 
-/*
-Defines the crawl data that is used to start a crawl. Unique to each crawl.
-  - Todo: currently contains config information relevant to crawl scheduling, though
-    this isn't inherent to the sitecrawlconfig and could be refactored
-*/
-type SiteCrawlConfig struct {
-	Root              string `json:"Root"`
+type Core struct {
+	RespectRobots bool `json:"RespectRobots"`
+	MaxCrawlDepth int  `json:"MaxCrawlDepth"` // unimplemented
+}
+
+type Limits struct {
+	MaxRequestsPerSecond int  `json:"MaxRequestsPerSecond"` // unimplemented
+	MaxThreads           int  `json:"MaxThreads"`           // unimplemented
+	SlowDownIf429        bool `json:"SlowDownIf429"`        // unimplemented
+	RetryIf429           bool `json:"RetryIf429"`           // unimplemented
+}
+
+type PostCrawl struct {
+	CollectPostCrawlMetrics bool `json:"CollectPostCrawlMetrics"` // unimplemented
+}
+
+type API struct {
+	ReadSheetID       string `json:"ReadSheetID"`       // deactivated
+	ReadSheetName     string `json:"ReadSheetName"`     // deactivated
+	AutoUploadResults bool   `json:"AutoUploadResults"` // unimplemented
 	CrawlStart        string `json:"CrawlStart"`
 	CrawlFrequency    string `json:"CrawlFrequency"`
 	SheetName         string `json:"SheetName"`
@@ -48,35 +58,17 @@ type ImplementationConfig struct {
 // ================================================================
 
 /*
-Loads a ProgramConfig object from a filepath
-*/
-func LoadProgramConfig(filename string) (ProgramConfig, error) {
-	defaultConfig := ProgramConfig{RespectRobots: false, MaxCrawlDepth: 99, MaxCrawlsPerSecond: 10}
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		return defaultConfig, fmt.Errorf("failed to load config file: %v", err)
-	}
-
-	var config ProgramConfig
-	if err := json.Unmarshal(data, &config); err != nil {
-		return defaultConfig, fmt.Errorf("failed to parse JSON: %v", err)
-	}
-
-	return config, nil
-}
-
-/*
 Loads a single crawl config from a filepath
 */
-func LoadSiteCrawlConfig(filepath string) (SiteCrawlConfig, error) {
+func LoadCrawlConfig(filepath string) (CrawlConfig, error) {
 	data, err := os.ReadFile(filepath)
 	if err != nil {
-		return SiteCrawlConfig{}, fmt.Errorf("failed to load file: %v", err)
+		return CrawlConfig{}, fmt.Errorf("failed to load file: %v", err)
 	}
 
-	var crawlConfig SiteCrawlConfig
+	var crawlConfig CrawlConfig
 	if err := json.Unmarshal(data, &crawlConfig); err != nil {
-		return SiteCrawlConfig{}, fmt.Errorf("failed to parse JSON: %v", err)
+		return CrawlConfig{}, fmt.Errorf("failed to parse JSON: %v", err)
 	}
 
 	return crawlConfig, nil
@@ -86,8 +78,8 @@ func LoadSiteCrawlConfig(filepath string) (SiteCrawlConfig, error) {
 Load multiple crawl configs
 Todo: Currently hardcoded to search for CrawlConfig.json
 */
-func LoadSiteCrawlConfigs() ([]SiteCrawlConfig, error) {
-	var crawlConfigs []SiteCrawlConfig
+func LoadCrawlConfigs() ([]CrawlConfig, error) {
+	var crawlConfigs []CrawlConfig
 
 	matches, err := filepath.Glob("configs/*CrawlConfig.json")
 	if err != nil {
@@ -95,7 +87,7 @@ func LoadSiteCrawlConfigs() ([]SiteCrawlConfig, error) {
 	}
 
 	for _, filepath := range matches {
-		cfg, err := LoadSiteCrawlConfig(filepath)
+		cfg, err := LoadCrawlConfig(filepath)
 		if err != nil {
 			fmt.Printf("[!] Error loading %s: %v\n", filepath, err)
 			continue
