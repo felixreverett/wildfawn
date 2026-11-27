@@ -20,7 +20,7 @@ type CrawlConfig struct {
 
 type Core struct {
 	RespectRobots bool `json:"RespectRobots"`
-	MaxCrawlDepth int  `json:"MaxCrawlDepth"` // unimplemented
+	MaxCrawlDepth int  `json:"MaxCrawlDepth"`
 }
 
 type Limits struct {

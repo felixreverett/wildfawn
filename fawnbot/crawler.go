@@ -278,7 +278,10 @@ func crawl(
 			// c. check for redirect status
 			if status >= 300 && status < 400 {
 				if redirectTo != "" && !visitedURLs[redirectTo] {
-					URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
+					// Only append new URL to crawl if it hasn't exceeded max crawl depth
+					if depth <= config.Core.MaxCrawlDepth || config.Core.MaxCrawlDepth == -1 {
+						URLQueue = append(URLQueue, QueueEntry{redirectTo, depth})
+					}
 					visitedURLs[redirectTo] = true
 					//fmt.Printf("> Redirect: %s → %s\n", url, redirectTo)
 				}
@@ -327,9 +330,10 @@ func crawl(
 				link = normaliseWWW(link, root)
 
 				// v. check if URL already processed, else add to queue (if not current URL)
+				//    do not append if exceed max crawl depth
 				if obj, ok := URLObjects[link]; ok {
 					obj.Inlinks++
-				} else if !visitedURLs[link] {
+				} else if !visitedURLs[link] && (depth < config.Core.MaxCrawlDepth || config.Core.MaxCrawlDepth == -1) {
 					URLQueue = append(URLQueue, QueueEntry{link, depth + 1})
 					visitedURLs[link] = true
 				}
