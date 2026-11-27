@@ -43,12 +43,12 @@ type QueueEntry struct {
 }
 
 func fetchURLQuick(url string) (string, int, string, error) {
-	return fetchURL(url, ProgramConfig{RespectRobots: false}, Robots{})
+	return fetchURL(url, CrawlConfig{Core: &Core{RespectRobots: false}}, Robots{})
 }
 
 // Send HTTP request to URL, returning HTML, response code, and any errors
-func fetchURL(url string, config ProgramConfig, robots Robots) (string, int, string, error) {
-	if config.RespectRobots && robots.CrawlDelay > 0 {
+func fetchURL(url string, config CrawlConfig, robots Robots) (string, int, string, error) {
+	if config.Core.RespectRobots && robots.CrawlDelay > 0 {
 		time.Sleep(time.Duration(robots.CrawlDelay) * time.Second)
 	}
 
@@ -225,7 +225,7 @@ Crawls all URLs from a root
 */
 func crawl(
 	root string,
-	config ProgramConfig,
+	config CrawlConfig,
 	robots Robots,
 	implConfig ImplementationConfig) (URLObjectList, error) {
 
@@ -259,7 +259,7 @@ func crawl(
 		isBlockedByRobots := isURLBlockedByRobots(url, robots)
 
 		// b. fetch (if allowed)
-		if !config.RespectRobots || !isBlockedByRobots {
+		if !config.Core.RespectRobots || !isBlockedByRobots {
 			html, status, redirectTo, err := fetchURL(url, config, robots)
 			if err != nil {
 				fmt.Println("[!] Error fetching URL: ", err)
@@ -345,10 +345,7 @@ func crawl(
 }
 
 // Crawl all URLs on a site
-func GoWild(
-	crawlConfig SiteCrawlConfig,
-	config ProgramConfig,
-	implConfig ImplementationConfig) (URLObjectList, error) {
+func GoWild(crawlConfig CrawlConfig, implConfig ImplementationConfig) (URLObjectList, error) {
 
 	start := time.Now()
 	root := crawlConfig.Root
@@ -371,7 +368,7 @@ func GoWild(
 	}
 
 	// 2. Crawl site
-	objectList, err := crawl(root, config, robots, implConfig)
+	objectList, err := crawl(root, crawlConfig, robots, implConfig)
 	if err != nil {
 		fmt.Println("[!] Failed to crawl root: ", err)
 		return URLObjectList{}, err

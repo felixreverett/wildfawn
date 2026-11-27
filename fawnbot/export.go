@@ -134,26 +134,26 @@ func writeCrawlToSheet(service *sheets.Service, sheetID string, sheetName string
 	return nil
 }
 
-func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig SiteCrawlConfig) error {
+func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig CrawlConfig) error {
 	start := time.Now()
 	fmt.Println("(i) Writing Analysis...")
 
 	// check if sheet exists
-	exists, err := sheetExists(service, crawlConfig.SheetID, crawlConfig.AnalysisSheetName)
+	exists, err := sheetExists(service, crawlConfig.API.SheetID, crawlConfig.API.AnalysisSheetName)
 	if err != nil {
 		return fmt.Errorf("failed to verify if analysis sheet exists: %v", err)
 	}
 	if !exists {
-		_, err := createNewSheet(service, crawlConfig.SheetID, crawlConfig.AnalysisSheetName)
+		_, err := createNewSheet(service, crawlConfig.API.SheetID, crawlConfig.API.AnalysisSheetName)
 		if err != nil {
 			return fmt.Errorf("failed to create analysis sheet: %v", err)
 		}
-		fmt.Printf("(i) Created new analysis sheet: %s\n", crawlConfig.AnalysisSheetName)
+		fmt.Printf("(i) Created new analysis sheet: %s\n", crawlConfig.API.AnalysisSheetName)
 	}
 
 	// Find first free row
-	readRange := fmt.Sprintf("%s!A:A", crawlConfig.AnalysisSheetName)
-	resp, err := service.Spreadsheets.Values.Get(crawlConfig.SheetID, readRange).Do()
+	readRange := fmt.Sprintf("%s!A:A", crawlConfig.API.AnalysisSheetName)
+	resp, err := service.Spreadsheets.Values.Get(crawlConfig.API.SheetID, readRange).Do()
 	if err != nil {
 		return fmt.Errorf("failed to read sheet to find first free row: %v", err)
 	}
@@ -174,14 +174,14 @@ func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig 
 		today, analysis.TotalInternalURLs, analysis.Total200s, analysis.Total300s, analysis.Total400s, analysis.Total500s,
 		analysis.TotalEmptyMetaTitles, analysis.TotalEmptyMetaDescriptions, analysis.TotalMissingCanonicals, analysis.TotalNoIndexes, analysis.TotalNotInSitemap, analysis.TotalNonIndexableInSitemap, analysis.TotalOrphans})
 
-	writeRange := fmt.Sprintf("%s!A%d", crawlConfig.AnalysisSheetName, firstFreeRow)
+	writeRange := fmt.Sprintf("%s!A%d", crawlConfig.API.AnalysisSheetName, firstFreeRow)
 
 	valueRange := &sheets.ValueRange{
 		Values: values,
 	}
 
 	// Write data to the sheet
-	_, err = service.Spreadsheets.Values.Update(crawlConfig.SheetID, writeRange, valueRange).ValueInputOption("RAW").Do()
+	_, err = service.Spreadsheets.Values.Update(crawlConfig.API.SheetID, writeRange, valueRange).ValueInputOption("RAW").Do()
 	if err != nil {
 		return fmt.Errorf("failed to write data to sheet: %v", err)
 	}
@@ -191,7 +191,7 @@ func writeAnalysis(service *sheets.Service, analysis CrawlAnalysis, crawlConfig 
 	return nil
 }
 
-func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig SiteCrawlConfig) {
+func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig CrawlConfig) {
 	var err error
 
 	// Establish new service
@@ -206,27 +206,27 @@ func WriteWild(URLObjectList URLObjectList, analysis CrawlAnalysis, crawlConfig 
 	}
 
 	// Write crawl
-	_, err = createNewSheet(service, crawlConfig.SheetID, crawlConfig.SheetName)
+	_, err = createNewSheet(service, crawlConfig.API.SheetID, crawlConfig.API.SheetName)
 	if err != nil {
 		fmt.Println("[!] Error creating new sheet:", err)
 	}
 
-	if err := writeCrawlToSheet(service, crawlConfig.SheetID, crawlConfig.SheetName, URLObjectList); err != nil {
+	if err := writeCrawlToSheet(service, crawlConfig.API.SheetID, crawlConfig.API.SheetName, URLObjectList); err != nil {
 		fmt.Println("[!] Error writing to sheet:", err)
 	}
 
 	// Export copy of crawl
-	if crawlConfig.KeepOldCrawls {
+	if crawlConfig.API.KeepOldCrawls {
 		// Create timestamped sheetname
 		timestamp := time.Now().Format("2006-01-02")
 		newSheetName := fmt.Sprintf("Crawl %s", timestamp)
 
-		_, err = createNewSheet(service, crawlConfig.SheetID, newSheetName)
+		_, err = createNewSheet(service, crawlConfig.API.SheetID, newSheetName)
 		if err != nil {
 			fmt.Println("[!] Error creating new sheet:", err)
 		}
 
-		if err := writeCrawlToSheet(service, crawlConfig.SheetID, newSheetName, URLObjectList); err != nil {
+		if err := writeCrawlToSheet(service, crawlConfig.API.SheetID, newSheetName, URLObjectList); err != nil {
 			fmt.Println("[!] Error writing to sheet:", err)
 		}
 	}

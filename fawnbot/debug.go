@@ -37,12 +37,12 @@ func printSiteMap(robots Robots) {
 	fmt.Printf(">   CrawlDelay: %d\n", robots.CrawlDelay)
 }
 
-func printCrawlConfig(crawlConfig SiteCrawlConfig) {
+func printCrawlConfig(crawlConfig CrawlConfig) {
 	fmt.Println("(i) Debug - logging crawl config")
 	fmt.Printf("     Root: %s\n", crawlConfig.Root)
-	fmt.Printf("     Start: %s\n", crawlConfig.CrawlStart)
-	fmt.Printf("     Frequency: %s\n", crawlConfig.CrawlFrequency)
-	fmt.Printf("     KeepOldCrawls: %t\n", crawlConfig.KeepOldCrawls)
+	fmt.Printf("     Start: %s\n", crawlConfig.API.CrawlStart)
+	fmt.Printf("     Frequency: %s\n", crawlConfig.API.CrawlFrequency)
+	fmt.Printf("     KeepOldCrawls: %t\n", crawlConfig.API.KeepOldCrawls)
 }
 
 func VerifyModuleImport() {

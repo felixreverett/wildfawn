@@ -9,7 +9,7 @@ import (
 func main() {
 	// a. Load program config
 	fmt.Println("= = = Initialising Wildfawn Cloud = = =")
-	programConfig, err := fawnbot.LoadProgramConfig("configs/programConfig.json")
+	programConfig, err := fawnbot.LoadCrawlConfig("configs/programConfig.json")
 	if err != nil {
 		fmt.Println("[!] Error loading program config. Using default:", err)
 	} else {
@@ -17,8 +17,7 @@ func main() {
 	}
 
 	// b. Load crawl configs
-	//crawlConfigs, err := fawnbot.LoadCrawlConfigs()
-	crawlConfigs, err := fawnbot.FetchCrawlConfigsFromSheet(programConfig.ReadSheetID, programConfig.ReadSheetName)
+	crawlConfigs, err := fawnbot.FetchCrawlConfigsFromSheet(programConfig.API.ReadSheetID, programConfig.API.ReadSheetName)
 	if err != nil {
 		fmt.Println("[!] Error loading crawl configs:", err)
 	}
@@ -34,7 +33,7 @@ func main() {
 
 		if ok {
 			fmt.Printf("(i) Site %s is due. Crawling\n", crawlConfig.Root)
-			URLObjectList, err := fawnbot.GoWild(crawlConfig, programConfig, fawnbot.ImplementationConfig{})
+			URLObjectList, err := fawnbot.GoWild(crawlConfig, fawnbot.ImplementationConfig{})
 			if err != nil {
 				fmt.Println("[!] Error crawling root URL, aborting:", err)
 				continue
