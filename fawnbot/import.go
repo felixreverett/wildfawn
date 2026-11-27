@@ -13,10 +13,10 @@ import (
 )
 
 // Note: this read is highly-dependent on the configuration of the read sheet. If values or column order changes, the program will not return any configs.
-func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]SiteCrawlConfig, error) {
+func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]CrawlConfig, error) {
 	service, err := startNewSheetsService()
 	if err != nil {
-		return []SiteCrawlConfig{}, fmt.Errorf("failed to start new Sheets service: %v", err)
+		return []CrawlConfig{}, fmt.Errorf("failed to start new Sheets service: %v", err)
 	}
 
 	readRange := sheetName + "!A2:G" // skip header, cols A-F
@@ -25,7 +25,7 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]SiteCrawlConfig, e
 		return nil, err
 	}
 
-	var crawlConfigs []SiteCrawlConfig
+	var crawlConfigs []CrawlConfig
 	for _, row := range response.Values {
 		if len(row) < 7 {
 			continue //ignore incomplete rows
@@ -36,14 +36,16 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]SiteCrawlConfig, e
 			keepOldCrawls = true
 		}
 
-		config := SiteCrawlConfig{
-			Root:              row[0].(string),
-			CrawlStart:        row[1].(string),
-			CrawlFrequency:    row[2].(string),
-			SheetName:         row[3].(string),
-			AnalysisSheetName: row[4].(string),
-			SheetID:           extractSheetIDFromURL(row[5].(string)),
-			KeepOldCrawls:     keepOldCrawls,
+		config := CrawlConfig{
+			Root: row[0].(string),
+			API: &API{
+				CrawlStart:        row[1].(string),
+				CrawlFrequency:    row[2].(string),
+				SheetName:         row[3].(string),
+				AnalysisSheetName: row[4].(string),
+				SheetID:           extractSheetIDFromURL(row[5].(string)),
+				KeepOldCrawls:     keepOldCrawls,
+			},
 		}
 
 		crawlConfigs = append(crawlConfigs, config)
@@ -52,8 +54,8 @@ func FetchCrawlConfigsFromSheet(sheetID, sheetName string) ([]SiteCrawlConfig, e
 	return crawlConfigs, nil
 }
 
-func IsSiteDue(s SiteCrawlConfig) (bool, error) {
-	startDate, err := time.Parse("2006-01-02", s.CrawlStart)
+func IsSiteDue(s CrawlConfig) (bool, error) {
+	startDate, err := time.Parse("2006-01-02", s.API.CrawlStart)
 	if err != nil {
 		return false, fmt.Errorf("invalid date format: %v", err)
 	}
@@ -61,7 +63,7 @@ func IsSiteDue(s SiteCrawlConfig) (bool, error) {
 	today := time.Now().Truncate(24 * time.Hour)
 	startDate = startDate.Truncate(24 * time.Hour)
 
-	switch strings.ToLower(s.CrawlFrequency) {
+	switch strings.ToLower(s.API.CrawlFrequency) {
 	case "daily":
 		return true, nil
 	case "weekly":
@@ -73,7 +75,7 @@ func IsSiteDue(s SiteCrawlConfig) (bool, error) {
 	case "monthly":
 		return startDate.Day() == today.Day(), nil
 	default:
-		return false, fmt.Errorf("invalid crawl frequency: '%s'. Expected one of: daily, weekly, fortnightly, monthly", s.CrawlFrequency)
+		return false, fmt.Errorf("invalid crawl frequency: '%s'. Expected one of: daily, weekly, fortnightly, monthly", s.API.CrawlFrequency)
 	}
 }
 
